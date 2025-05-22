@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>중국어 낭독기</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f9f9f9;
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    label, select, input[type="range"] {
+      margin-right: 1rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+      color: #222;
+    }
+    #current {
+      font-weight: bold;
+      color: darkblue;
+    }
+  </style>
+</head>
+<body>
+  <h2>중국어 낭독기</h2>
+
+  <div>
+    <label>읽을 언어:</label>
+    <select id="modeSelect">
+      <option value="both">중국어 + 한글 번갈아</option>
+      <option value="zh">중국어만</option>
+      <option value="ko">한글만</option>
+    </select>
+
+    <label>속도: <span id="speedVal">1</span>x</label>
+    <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1">
+
+    <label>
+      <input type="checkbox" id="repeatToggle">
+      자동 반복
+    </label>
+
+    <button onclick="startReading()">▶ 낭독 시작</button>
+  </div>
+
+  <hr>
+
+  <ul id="sentenceList">
+    <li data-zh="我计划今年去中国旅行。" data-ko="나는 올해 중국 여행을 계획하고 있다。" data-word="计划 (jìhuà): 계획하다">
+        计划 (jìhuà): 我计划今年去中国旅行。<br>👉 나는 올해 중국 여행을 계획하고 있다。
+      </li>
+      <li data-zh="请把门关上。" data-ko="문을 닫아 주세요。" data-word="关 (guān): 닫다">
+        关 (guān): 请把门关上。<br>👉 문을 닫아 주세요。
+      </li>
+      <li data-zh="他是我们公司的经理。" data-ko="그는 우리 회사의 매니저입니다。" data-word="经理 (jīnglǐ): 매니저, 관리자">
+        经理 (jīnglǐ): 他是我们公司的经理。<br>👉 그는 우리 회사의 매니저입니다。
+      </li>
+      <li data-zh="这个问题比较复杂。" data-ko="이 문제는 좀 복잡해요。" data-word="复杂 (fùzá): 복잡하다">
+        复杂 (fùzá): 这个问题比较复杂。<br>👉 이 문제는 좀 복잡해요。
+      </li>
+      <li data-zh="她的性格很开朗。" data-ko="그녀의 성격은 아주 명랑해요。" data-word="性格 (xìnggé): 성격">
+        性格 (xìnggé): 她的性格很开朗。<br>👉 그녀의 성격은 아주 명랑해요。
+      </li>
+      <li data-zh="我们需要提高效率。" data-ko="우리는 효율을 높일 필요가 있다。" data-word="提高 (tígāo): 향상시키다">
+        提高 (tígāo): 我们需要提高效率。<br>👉 우리는 효율을 높일 필요가 있다。
+      </li>
+      <li data-zh="他坚持每天跑步。" data-ko="그는 매일 조깅을 꾸준히 합니다。" data-word="坚持 (jiānchí): 고수하다, 지속하다">
+        坚持 (jiānchí): 他坚持每天跑步。<br>👉 그는 매일 조깅을 꾸준히 합니다。
+      </li>
+      <li data-zh="我完全同意你的观点。" data-ko="나는 당신의 관점에 전적으로 동의합니다。" data-word="观点 (guāndiǎn): 관점, 견해">
+        观点 (guāndiǎn): 我完全同意你的观点。<br>👉 나는 당신의 관점에 전적으로 동의합니다。
+      </li>
+      <li data-zh="我们得赶快完成任务。" data-ko="우리는 빨리 임무를 끝내야 해요。" data-word="任务 (rènwu): 임무, 과제">
+        任务 (rènwu): 我们得赶快完成任务。<br>👉 우리는 빨리 임무를 끝내야 해요。
+      </li>
+      <li data-zh="他有丰富的经验。" data-ko="그는 풍부한 경험이 있다。" data-word="经验 (jīngyàn): 경험">
+        经验 (jīngyàn): 他有丰富的经验。<br>👉 그는 풍부한 경험이 있다。
+      </li>
+      <li data-zh="这个结果让我很失望。" data-ko="이 결과는 나를 매우 실망시켰다。" data-word="失望 (shīwàng): 실망하다">
+        失望 (shīwàng): 这个结果让我很失望。<br>👉 이 결과는 나를 매우 실망시켰다。
+      </li>
+      <li data-zh="请注意安全。" data-ko="안전에 주의하세요。" data-word="注意 (zhùyì): 주의하다">
+        注意 (zhùyì): 请注意安全。<br>👉 안전에 주의하세요。
+      </li>
+      <li data-zh="我想申请这个职位。" data-ko="나는 이 직책에 지원하고 싶어요。" data-word="申请 (shēnqǐng): 신청하다, 지원하다">
+        申请 (shēnqǐng): 我想申请这个职位。<br>👉 나는 이 직책에 지원하고 싶어요。
+      </li>
+      <li data-zh="他在会上提出了一个建议。" data-ko="그는 회의에서 하나의 제안을 제시했다。" data-word="建议 (jiànyì): 제안하다">
+        建议 (jiànyì): 他在会上提出了一个建议。<br>👉 그는 회의에서 하나의 제안을 제시했다。
+      </li>
+      <li data-zh="这是我们共同的目标。" data-ko="이건 우리의 공동 목표다。" data-word="共同 (gòngtóng): 공동의">
+        共同 (gòngtóng): 这是我们共同的目标。<br>👉 이건 우리의 공동 목표다。
+      </li>
+      <li data-zh="他负责这个项目。" data-ko="그가 이 프로젝트를 책임지고 있다。" data-word="负责 (fùzé): 책임지다">
+        负责 (fùzé): 他负责这个项目。<br>👉 그가 이 프로젝트를 책임지고 있다。
+      </li>
+      <li data-zh="你最好提前一点儿到。" data-ko="너는 미리 조금 일찍 도착하는 게 좋아。" data-word="提前 (tíqián): 앞당기다, 미리 하다">
+        提前 (tíqián): 你最好提前一点儿到。<br>👉 너는 미리 조금 일찍 도착하는 게 좋아。
+      </li>
+      <li data-zh="请提供一下你的联系方式。" data-ko="연락처를 알려주세요。" data-word="提供 (tígōng): 제공하다">
+        提供 (tígōng): 请提供一下你的联系方式。<br>👉 연락처를 알려주세요。
+      </li>
+      <li data-zh="我终于通过了考试！" data-ko="나 드디어 시험에 통과했어!" data-word="通过 (tōngguò): 통과하다">
+        通过 (tōngguò): 我终于通过了考试！<br>👉 나 드디어 시험에 통과했어!
+      </li>
+      <li data-zh="我正在考虑换一份工作。" data-ko="나는 이직을 고려하고 있다。" data-word="考虑 (kǎolǜ): 고려하다, 생각하다">
+        考虑 (kǎolǜ): 我正在考虑换一份工作。<br>👉 나는 이직을 고려하고 있다。
+      </li>
+      
+  </ul>
+  
+
+  <script>
+    const sentences = Array.from(document.querySelectorAll('#sentenceList li'));
+    const modeSelect = document.getElementById('modeSelect');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedVal = document.getElementById('speedVal');
+    const repeatToggle = document.getElementById('repeatToggle');
+
+    let currentIndex = 0;
+    let currentStep = 0; // 0: zh, 1: ko
+
+    speedSlider.oninput = () => {
+      speedVal.textContent = speedSlider.value;
+    };
+
+    function speakText(text, lang, onEnd) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.rate = parseFloat(speedSlider.value);
+      utterance.onend = onEnd;
+      speechSynthesis.speak(utterance);
+    }
+
+    function readSentence() {
+      if (currentIndex >= sentences.length) {
+        if (repeatToggle.checked) {
+          currentIndex = 0;
+          currentStep = 0;
+        } else {
+          alert("모든 문장을 읽었습니다.");
+          return;
+        }
+      }
+
+      // 현재 문장 표시
+      sentences.forEach(s => s.removeAttribute('id'));
+      const current = sentences[currentIndex];
+      current.id = 'current';
+
+      const zh = current.dataset.zh;
+      const ko = current.dataset.ko;
+      const mode = modeSelect.value;
+
+      if (mode === 'both') {
+        if (currentStep === 0) {
+          speakText(zh, 'zh-CN', () => {
+            currentStep = 1;
+            readSentence(); // 이어서 한글
+          });
+        } else {
+          speakText(ko, 'ko-KR', () => {
+            currentStep = 0;
+            currentIndex++;
+            readSentence(); // 다음 문장으로
+          });
+        }
+      } else if (mode === 'zh') {
+        speakText(zh, 'zh-CN', () => {
+          currentIndex++;
+          readSentence();
+        });
+      } else if (mode === 'ko') {
+        speakText(ko, 'ko-KR', () => {
+          currentIndex++;
+          readSentence();
+        });
+      }
+    }
+
+    function startReading() {
+      speechSynthesis.cancel();
+      currentIndex = 0;
+      currentStep = 0;
+      readSentence();
+    }
+  </script>
+</body>
+</html>

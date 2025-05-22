@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>중국어 발음 확인기</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f2f2f2;
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    button {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    #resultBox {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 0 5px #ccc;
+    }
+    .wrong {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎙️ 중국어 발음 연습</h2>
+  <p>다음 문장을 소리 내어 말해보세요:</p>
+  <h3 id="target">我感冒了，应该去看医生。</h3>
+
+  <button id="recordBtn" onclick="startRecognition()">🎤 녹음 시작</button>
+
+
+  <div id="resultBox">
+    <p><strong>🧏 인식된 문장:</strong> <span id="recognized">-</span></p>
+    <p><strong>✅ 정답 비교:</strong> <span id="comparison"></span></p>
+  </div>
+
+  <script>
+    const correct = "我感冒了应该去看医生";
+let recognition = null;
+
+function startRecognition() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert('이 브라우저는 음성 인식을 지원하지 않습니다.');
+    return;
+  }
+
+  if (recognition) {
+    recognition.stop();
+    return;
+  }
+
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  const recordBtn = document.getElementById("recordBtn");
+  recordBtn.textContent = "🛑 녹음 중... 클릭 시 중단";
+  recordBtn.style.background = "#ffdddd";
+
+  recognition.onstart = () => {
+    document.getElementById("recognized").textContent = "🎤 듣고 있어요...";
+    document.getElementById("comparison").textContent = "";
+  };
+
+  recognition.onresult = function(event) {
+    const transcript = event.results[0][0].transcript.replace(/[，。！？]/g, "");
+    document.getElementById("recognized").textContent = transcript;
+    document.getElementById("comparison").innerHTML = highlightDiff(correct, transcript);
+  };
+
+  recognition.onerror = function(event) {
+    document.getElementById("recognized").textContent = "인식 오류: " + event.error;
+  };
+
+  recognition.onend = () => {
+    recognition = null;
+    recordBtn.textContent = "🎤 녹음 시작";
+    recordBtn.style.background = "";
+  };
+
+  recognition.start();
+}
+
+  </script>
+</body>
+</html>

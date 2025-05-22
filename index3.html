@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>HSK 4급 쓰기 퀴즈 (문장 배열)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 2rem;
+      line-height: 1.8;
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    #question {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .word {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      margin: 0.3rem;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .word:hover {
+      background: #e0e0e0;
+    }
+    #selected {
+      margin: 1rem 0;
+      min-height: 2rem;
+      padding: 0.5rem;
+      background: #eef;
+      border-radius: 5px;
+    }
+    #result {
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+    button {
+      margin-right: 1rem;
+      padding: 0.4rem 1rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h2>📚 HSK 4급 쓰기 퀴즈 - 문장 배열</h2>
+
+  <div id="question"></div>
+  <div id="selected">👉 클릭한 순서: <span id="answerArea"></span></div>
+
+  <div id="words"></div>
+
+  <button onclick="checkAnswer()">✅ 제출</button>
+  <button onclick="nextQuestion()">➡ 다음 문제</button>
+
+  <div id="result"></div>
+
+  <script>
+    const questions = [
+      {
+        words: ["早上", "我", "跑步", "去", "常常"],
+        answer: "我早上常常去跑步"
+      },
+      {
+        words: ["我们", "中国", "打算", "明年", "去"],
+        answer: "我们打算明年去中国"
+      },
+      {
+        words: ["你", "看", "那本书", "完", "了吗"],
+        answer: "你看完那本书了吗"
+      },
+      {
+        words: ["天气", "冷", "越来越", "了"],
+        answer: "天气越来越冷了"
+      },
+      {
+        words: ["朋友", "昨天", "我", "一个", "见了"],
+        answer: "我昨天见了一个朋友"
+      }
+    ];
+  
+    let currentIndex = 0;
+    let selectedWords = [];
+    let selectedEls = [];
+  
+    function displayQuestion() {
+      const q = questions[currentIndex];
+      selectedWords = [];
+      selectedEls = [];
+      document.getElementById("answerArea").textContent = '';
+      document.getElementById("result").textContent = '';
+  
+      const shuffled = [...q.words].sort(() => Math.random() - 0.5);
+      const wordButtons = shuffled.map(word => {
+        return `<span class="word" data-word="${word}" onclick="toggleWord(this)">${word}</span>`;
+      }).join("");
+      document.getElementById("question").textContent = `Q${currentIndex + 1}. 단어들을 올바른 순서로 클릭하세요:`;
+      document.getElementById("words").innerHTML = wordButtons;
+    }
+  
+    function toggleWord(el) {
+      const word = el.dataset.word;
+      const index = selectedEls.indexOf(el);
+  
+      if (index > -1) {
+        // 이미 선택된 단어 → 선택 해제
+        selectedWords.splice(index, 1);
+        selectedEls.splice(index, 1);
+        el.style.background = "#fff";
+        el.style.borderColor = "#ccc";
+      } else {
+        // 새로 선택
+        selectedWords.push(word);
+        selectedEls.push(el);
+        el.style.background = "#cce5ff";
+        el.style.borderColor = "#007bff";
+      }
+  
+      document.getElementById("answerArea").textContent = selectedWords.join(" ");
+    }
+  
+    function checkAnswer() {
+      const userAnswer = selectedWords.join("");
+      const correctAnswer = questions[currentIndex].answer;
+      const result = document.getElementById("result");
+  
+      if (userAnswer === correctAnswer) {
+        result.textContent = "✅ 정답입니다!";
+        result.style.color = "green";
+      } else {
+        result.textContent = `❌ 오답입니다. 정답: ${correctAnswer}`;
+        result.style.color = "red";
+      }
+    }
+  
+    function nextQuestion() {
+      currentIndex = (currentIndex + 1) % questions.length;
+      displayQuestion();
+    }
+  
+    displayQuestion();
+  </script>
+  
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HSK 작문 퀴즈 영상</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#001f3f">
+  <link rel="icon" href="icon.png">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(to bottom, #001f3f, #003366);
+      color: #f5f5f5;
+      text-align: center;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #00bfff;
+      margin-bottom: 1rem;
+    }
+    .controls {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .controls label {
+      font-size: 1rem;
+    }
+    .text-box {
+      font-size: 1.5rem;
+      margin: 1.5rem auto;
+      opacity: 0;
+      transition: opacity 1s;
+      max-width: 800px;
+      padding: 1rem;
+      border-radius: 12px;
+      background-color: rgba(255,255,255,0.1);
+      word-break: keep-all;
+    }
+    .visible {
+      opacity: 1;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: #00bfff;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #009acd;
+    }
+    select, input[type="checkbox"] {
+      font-size: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      .text-box {
+        font-size: 1.2rem;
+        padding: 0.8rem;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 HSK 4급 작문 퀴즈</h1>
+
+  <div class="controls">
+    <label>
+      <input type="checkbox" id="autoPlay" checked>
+      자동 재생
+    </label>
+    <label>
+      음성:
+      <select id="voiceMode">
+        <option value="zh">중국어만</option>
+        <option value="ko">한글만</option>
+        <option value="both">중국어+한글</option>
+        <option value="none">음성 없음</option>
+      </select>
+    </label>
+    <button onclick="togglePlay()" id="toggleBtn">⏸ 일시정지</button>
+  </div>
+
+  <h2 id="question" class="text-box">Q. 나는 병원에 가야 해</h2>
+  <div class="text-box" id="sentence">我应该去看医生。</div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker Registered'));
+    }
+
+    const quizList = [
+      { ko: "나는 병원에 가야 해", zh: "我应该去看医生。" },
+      { ko: "매일 조깅하는 것이 건강에 좋아", zh: "每天跑步对身体很好。" },
+      { ko: "지하철 타는 건 아주 편리해", zh: "坐地铁很方便。" },
+      { ko: "날씨가 점점 추워지고 있어", zh: "天气越来越冷了。" },
+      { ko: "나는 우산을 가져오는 걸 잊어버렸어", zh: "我忘记带伞了。" }
+    ];
+
+    let index = 0;
+    let isPlaying = true;
+    let timer = null;
+
+    function speak(text, lang) {
+      if (document.getElementById("voiceMode").value === "none") return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang;
+      utter.rate = 1.0;
+      speechSynthesis.speak(utter);
+    }
+
+    function showQuiz() {
+      if (index >= quizList.length) index = 0;
+
+      const q = quizList[index];
+      const question = document.getElementById("question");
+      const sentence = document.getElementById("sentence");
+      const voiceMode = document.getElementById("voiceMode").value;
+
+      question.classList.remove("visible");
+      sentence.classList.remove("visible");
+      speechSynthesis.cancel();
+
+      setTimeout(() => {
+        question.textContent = `Q. ${q.ko}`;
+        question.classList.add("visible");
+        if (voiceMode === "ko" || voiceMode === "both") speak(q.ko, 'ko-KR');
+      }, 500);
+
+      setTimeout(() => {
+        sentence.textContent = q.zh;
+        sentence.classList.add("visible");
+        if (voiceMode === "zh" || voiceMode === "both") speak(q.zh, 'zh-CN');
+      }, 3000);
+
+      if (document.getElementById("autoPlay").checked && isPlaying) {
+        timer = setTimeout(() => {
+          index++;
+          showQuiz();
+        }, 8000);
+      }
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      const btn = document.getElementById("toggleBtn");
+
+      if (isPlaying) {
+        btn.textContent = "⏸ 일시정지";
+        showQuiz();
+      } else {
+        btn.textContent = "▶ 재생";
+        clearTimeout(timer);
+        speechSynthesis.cancel();
+      }
+    }
+
+    showQuiz();
+  </script>
+</body>
+</html>
