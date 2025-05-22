@@ -15,6 +15,9 @@
       text-align: center;
       padding: 2rem;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     h1 {
       font-size: 2rem;
@@ -35,7 +38,7 @@
       font-size: 1.5rem;
       margin: 1.5rem auto;
       opacity: 0;
-      transition: opacity 1s;
+      transition: opacity 1s ease-in-out;
       max-width: 800px;
       padding: 1rem;
       border-radius: 12px;
@@ -44,6 +47,11 @@
     }
     .visible {
       opacity: 1;
+    }
+    .current-word {
+      background-color: #ff6347;
+      color: white;
+      font-weight: bold;
     }
     button {
       padding: 0.6rem 1.2rem;
@@ -57,8 +65,41 @@
     button:hover {
       background-color: #009acd;
     }
-    select, input[type="checkbox"] {
+    select, input[type="checkbox"], input[type="number"] {
       font-size: 1rem;
+    }
+    .progress-bar {
+      width: 100%;
+      background-color: #ddd;
+      border-radius: 10px;
+      height: 10px;
+      margin-top: 1rem;
+    }
+    .progress-bar-inner {
+      width: 0;
+      height: 100%;
+      background-color: #00bfff;
+      border-radius: 10px;
+    }
+    .word-list {
+      max-height: 300px;
+      overflow-y: scroll;
+      margin-top: 1rem;
+      width: 80%;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    .word-item {
+      padding: 0.8rem;
+      cursor: pointer;
+      text-align: left;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    .word-item:hover {
+      background-color: #00bfff;
+      color: white;
     }
 
     @media (max-width: 600px) {
@@ -92,114 +133,191 @@
       <select id="voiceMode">
         <option value="zh">중국어만</option>
         <option value="ko">한글만</option>
-        <option value="both">중국어+한글</option>
+        <option value="both" selected>중국어+한글</option>
         <option value="none">음성 없음</option>
+      </select>
+    </label>
+    <label>
+      한글 반복: <input type="number" id="koRepeat" value="1" min="1" max="5">
+    </label>
+    <label>
+      중국어 반복: <input type="number" id="zhRepeat" value="1" min="1" max="5">
+    </label>
+    <label>
+      <input type="checkbox" id="shuffleMode"> 랜덤 순서
+    </label>
+    <label>
+      문장 순서:
+      <select id="orderMode">
+        <option value="koFirst">한글 먼저</option>
+        <option value="zhFirst">중국어 먼저</option>
       </select>
     </label>
     <button onclick="togglePlay()" id="toggleBtn">⏸ 일시정지</button>
   </div>
 
-  <h2 id="question" class="text-box">Q. 그가 왔잖아!</h2>
-  <div class="text-box" id="sentence">他来了啊！。</div>
+  <div id="progress-container">
+    <div class="progress-bar">
+      <div class="progress-bar-inner" id="progressBar"></div>
+    </div>
+  </div>
 
+  <div id="quiz-container">
+    <h2 id="question" class="text-box">Q. 나는 병원에 가야 해</h2>
+    <div class="text-box" id="sentence">我应该去看医生。</div>
+  </div>
+
+  <div class="controls">
+    <button onclick="prevQuestion()">⏪ 이전</button>
+    <button onclick="nextQuestion()">다음 ⏩</button>
+  </div>
+
+  <div class="word-list" id="wordList"></div>
+
+  <script src="quiz-data.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')
         .then(() => console.log('Service Worker Registered'));
     }
 
-    const quizList = [
-  { ko: "그가 왔잖아!", zh: "他来了啊！" },
-  { ko: "나는 내 가족을 사랑해.", zh: "我爱我的家人。" },
-  { ko: "그는 나보다 조금 작다.", zh: "他比我矮一点。" },
-  { ko: "내 취미는 그림 그리기야.", zh: "我的爱好是画画。" },
-  { ko: "도서관은 아주 조용하다.", zh: "图书馆里很安静。" },
-  { ko: "아줌마가 저녁을 해주셨어.", zh: "阿姨给我做了晚饭。" },
-  { ko: "우리 가자!", zh: "我们走吧！" },
-  { ko: "문을 닫아 주세요.", zh: "请把门关上。" },
-  { ko: "나는 펜이 여덟 자루 있어.", zh: "我有八支笔。" },
-  { ko: "내 아버지는 선생님이야.", zh: "我爸爸是老师。" },
-  { ko: "이 옷은 흰색이다.", zh: "这件衣服是白色的。" },
-  { ko: "여기에 책이 백 권 있어.", zh: "这里有一百本书。" },
-  { ko: "나는 사과 반 개만 먹었어.", zh: "我只吃了半个苹果。" },
-  { ko: "우리 반엔 학생이 스무 명 있다.", zh: "我们班有二十个学生。" },
-  { ko: "나 어제 이사했어.", zh: "我昨天搬家了。" },
-  { ko: "좋은 방법이 있어.", zh: "我有一个好办法。" },
-  { ko: "좀 도와줄 수 있어?", zh: "你能帮忙一下吗？" },
-  { ko: "그는 사무실에서 일해.", zh: "他在办公室工作。" },
-  { ko: "도와줘서 고마워.", zh: "谢谢你的帮助。" },
-  { ko: "나는 밥을 많이 먹어서 배불러.", zh: "我吃了很多饭，现在很饱。"},
-  { ko: "그녀는 만두 하나를 쌌어.", zh: "她包了一个饺子。" },
-  { ko: "나는 매일 아침 신문을 본다.", zh: "我每天早上看报纸。" },
-  { ko: "내 핸드폰이 그에게 가져가졌어.", zh: "我的手机被他拿走了。" },
-  { ko: "북쪽의 겨울은 아주 춥다.", zh: "北方的冬天很冷。" },
-  { ko: "내년에 베이징 여행 갈 거야.", zh: "我明年去北京旅行。" },
-  { ko: "책상 위에 컵 하나가 있어.", zh: "桌子上有一个杯子。" },
-  { ko: "새 책 한 권을 샀어.", zh: "我买了一本新书。" },
-  { ko: "너는 나보다 키가 크다.", zh: "你比我高。" },
-  { ko: "이 몇 년간 도시가 많이 변했어.", zh: "这几年城市变化很大。" },
-  { ko: "말하지 마.", zh: "别说话了。" },
-  { ko: "다른 사람들은 다 갔어.", zh: "别人都走了。" },
-  { ko: "이 문제는 비교적 쉬워.", zh: "这个问题比较容易。" },
-  { ko: "나는 노트에 필기해.", zh: "我用笔记本记笔记。" },
-  { ko: "우리는 호텔에 묵었어.", zh: "我们住在宾馆里。" },
-  { ko: "냉장고 안에 과일이 많아.", zh: "冰箱里有很多水果。" },
-  { ko: "내일 농구 시합이 있어.", zh: "我们明天有一场篮球比赛。" },
-  { ko: "넌 반드시 열심히 공부해야 해.", zh: "你必须努力学习。" },
-  { ko: "그의 코는 높다.", zh: "他的鼻子很高。" },
-  { ko: "나는 커피를 좋아하지 않아.", zh: "我不喜欢咖啡。" },
-  { ko: "그는 똑똑할 뿐만 아니라 열심히도 해.", zh: "他不但聪明而且很努力。" },
-];
-
-
     let index = 0;
     let isPlaying = true;
     let timer = null;
+    let shuffledList = [];
 
-    function speak(text, lang) {
-      if (document.getElementById("voiceMode").value === "none") return;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = lang;
-      utter.rate = 1.0;
-      speechSynthesis.speak(utter);
+    function shuffle(array) {
+      let currentIndex = array.length, randomIndex;
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+      }
+      return array;
+    }
+
+    function speakMultiple(text, lang, count, callback) {
+      let spoken = 0;
+      const speakOnce = () => {
+        if (spoken >= count) return callback();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = lang;
+        utter.rate = 1.0;
+        utter.onend = () => {
+          spoken++;
+          speakOnce();
+        };
+        speechSynthesis.speak(utter);
+      };
+      speakOnce();
     }
 
     function showQuiz() {
-      if (index >= quizList.length) index = 0;
+      const list = document.getElementById("shuffleMode").checked ? shuffledList : quizList;
+      if (index >= list.length) {
+        if (document.getElementById("shuffleMode").checked) shuffledList = shuffle([...quizList]);
+        index = 0;
+      }
 
-      const q = quizList[index];
+      const q = list[index];
       const question = document.getElementById("question");
       const sentence = document.getElementById("sentence");
       const voiceMode = document.getElementById("voiceMode").value;
+      const koRepeat = parseInt(document.getElementById("koRepeat").value);
+      const zhRepeat = parseInt(document.getElementById("zhRepeat").value);
+      const orderMode = document.getElementById("orderMode").value;
 
       question.classList.remove("visible");
       sentence.classList.remove("visible");
       speechSynthesis.cancel();
 
       setTimeout(() => {
-        question.textContent = `Q. ${q.ko}`;
-        question.classList.add("visible");
-        if (voiceMode === "ko" || voiceMode === "both") speak(q.ko, 'ko-KR');
-      }, 500);
+        if (orderMode === "koFirst") {
+          question.textContent = `Q. ${q.ko}`;
+          question.classList.add("visible");
+          if (voiceMode === "ko" || voiceMode === "both") {
+            speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
+              setTimeout(() => {
+                sentence.textContent = q.zh;
+                sentence.classList.add("visible");
+                if (voiceMode === "zh" || voiceMode === "both") {
+                  speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
+                    updateProgressBar();
+                    if (document.getElementById("autoPlay").checked && isPlaying) {
+                      timer = setTimeout(() => {
+                        index++;
+                        showQuiz();
+                      }, 1000);
+                    }
+                  });
+                } else {
+                  updateProgressBar();
+                  if (document.getElementById("autoPlay").checked && isPlaying) {
+                    timer = setTimeout(() => {
+                      index++;
+                      showQuiz();
+                    }, 4000);
+                  }
+                }
+              }, 500);
+            });
+          }
+        } else {
+          sentence.textContent = q.zh;
+          sentence.classList.add("visible");
+          if (voiceMode === "zh" || voiceMode === "both") {
+            speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
+              setTimeout(() => {
+                question.textContent = `Q. ${q.ko}`;
+                question.classList.add("visible");
+                if (voiceMode === "ko" || voiceMode === "both") {
+                  speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
+                    updateProgressBar();
+                    if (document.getElementById("autoPlay").checked && isPlaying) {
+                      timer = setTimeout(() => {
+                        index++;
+                        showQuiz();
+                      }, 1000);
+                    }
+                  });
+                } else {
+                  updateProgressBar();
+                  if (document.getElementById("autoPlay").checked && isPlaying) {
+                    timer = setTimeout(() => {
+                      index++;
+                      showQuiz();
+                    }, 4000);
+                  }
+                }
+              }, 500);
+            });
+          }
+        }
+      }, 300);
+    }
 
-      setTimeout(() => {
-        sentence.textContent = q.zh;
-        sentence.classList.add("visible");
-        if (voiceMode === "zh" || voiceMode === "both") speak(q.zh, 'zh-CN');
-      }, 3000);
-
-      if (document.getElementById("autoPlay").checked && isPlaying) {
-        timer = setTimeout(() => {
-          index++;
-          showQuiz();
-        }, 8000);
+    function prevQuestion() {
+      if (index > 0) {
+        index--;
+        showQuiz();
       }
+    }
+
+    function nextQuestion() {
+      if (index < quizList.length - 1) {
+        index++;
+        showQuiz();
+      }
+    }
+
+    function goToQuiz(id) {
+      index = id - 1;
+      showQuiz();
     }
 
     function togglePlay() {
       isPlaying = !isPlaying;
       const btn = document.getElementById("toggleBtn");
-
       if (isPlaying) {
         btn.textContent = "⏸ 일시정지";
         showQuiz();
@@ -210,6 +328,25 @@
       }
     }
 
+    function updateProgressBar() {
+      const progressBar = document.getElementById("progressBar");
+      const progress = (index + 1) / quizList.length * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+
+    function generateWordList() {
+      const wordListContainer = document.getElementById("wordList");
+      quizList.forEach((q, idx) => {
+        const wordItem = document.createElement("div");
+        wordItem.classList.add("word-item");
+        wordItem.textContent = q.word;
+        wordItem.onclick = () => goToQuiz(idx + 1);
+        wordListContainer.appendChild(wordItem);
+      });
+    }
+
+    shuffledList = shuffle([...quizList]);
+    generateWordList();
     showQuiz();
   </script>
 </body>
