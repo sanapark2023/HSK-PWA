@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HSK 작문 퀴즈 영상</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#001f3f">
+  <link rel="icon" href="icon.png">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(to bottom, #001f3f, #003366);
+      color: #f5f5f5;
+      text-align: center;
+      padding: 2rem;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #00bfff;
+      margin-bottom: 1rem;
+    }
+    .controls {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .controls label {
+      font-size: 1rem;
+    }
+    .text-box {
+      font-size: 1.5rem;
+      margin: 1.5rem auto;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      max-width: 800px;
+      padding: 1rem;
+      border-radius: 12px;
+      background-color: rgba(255,255,255,0.1);
+      word-break: keep-all;
+    }
+    .visible {
+      opacity: 1;
+    }
+    .current-word {
+      background-color: #ff6347;
+      color: white;
+      font-weight: bold;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: #00bfff;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #009acd;
+    }
+    select, input[type="checkbox"], input[type="number"] {
+      font-size: 1rem;
+    }
+    .progress-bar {
+      width: 100%;
+      background-color: #ddd;
+      border-radius: 10px;
+      height: 10px;
+      margin-top: 1rem;
+    }
+    .progress-bar-inner {
+      width: 0;
+      height: 100%;
+      background-color: #00bfff;
+      border-radius: 10px;
+    }
+    .word-list {
+      max-height: 300px;
+      overflow-y: scroll;
+      margin-top: 1rem;
+      width: 80%;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    .word-item {
+      padding: 0.8rem;
+      cursor: pointer;
+      text-align: left;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    .word-item:hover {
+      background-color: #00bfff;
+      color: white;
+    }
+
+    #current-index {
+      font-size: 1rem;
+      background-color: #006699;
+      color: white;
+      padding: 0.5rem;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: inline-block;
+      position: relative;
+      z-index: 100;
+      opacity: 1;  /* Ensure opacity is 1 to make it visible */
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      .text-box {
+        font-size: 1.2rem;
+        padding: 0.8rem;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 HSK 4급 작문 퀴즈</h1>
+
+  <div class="controls">
+    <label>
+      <input type="checkbox" id="autoPlay" checked>
+      자동 재생
+    </label>
+    <label>
+      음성:
+      <select id="voiceMode">
+        <option value="zh">중국어만</option>
+        <option value="ko">한글만</option>
+        <option value="both" selected>중국어+한글</option>
+        <option value="none">음성 없음</option>
+      </select>
+    </label>
+    <label>
+      한글 반복: <input type="number" id="koRepeat" value="1" min="1" max="5">
+    </label>
+    <label>
+      중국어 반복: <input type="number" id="zhRepeat" value="1" min="1" max="5">
+    </label>
+    <label>
+      <input type="checkbox" id="shuffleMode"> 랜덤 순서
+    </label>
+    <label>
+      문장 순서:
+      <select id="orderMode">
+        <option value="koFirst">한글 먼저</option>
+        <option value="zhFirst">중국어 먼저</option>
+      </select>
+    </label>
+    <button onclick="togglePlay()" id="toggleBtn">⏸ 일시정지</button>
+  </div>
+
+  <div id="progress-container">
+    <div class="progress-bar">
+      <div class="progress-bar-inner" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div id="quiz-container">
+    <h2 id="question" class="text-box">Q. 나는 병원에 가야 해</h2>
+    <div class="text-box" id="sentence">我应该去看医生。</div>
+    <div id="current-index" class="text-box">현재 문장 번호: 1/10</div>
+  </div>
+
+  <div class="controls">
+    <button onclick="prevQuestion()">⏪ 이전</button>
+    <button onclick="nextQuestion()">다음 ⏩</button>
+  </div>
+
+  <div class="word-list" id="wordList"></div>
+
+  <script src="quiz-data.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker Registered'));
+    }
+
+    let index = 0;
+    let isPlaying = true;
+    let timer = null;
+    let shuffledList = [];
+
+    function shuffle(array) {
+      let currentIndex = array.length, randomIndex;
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+      }
+      return array;
+    }
+
+    function speakMultiple(text, lang, count, callback) {
+      let spoken = 0;
+      const speakOnce = () => {
+        if (spoken >= count) return callback();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = lang;
+        utter.rate = 1.0;
+        utter.onend = () => {
+          spoken++;
+          speakOnce();
+        };
+        speechSynthesis.speak(utter);
+      };
+      speakOnce();
+    }
+
+    function showQuiz() {
+      const list = document.getElementById("shuffleMode").checked ? shuffledList : quizList;
+      if (index >= list.length) {
+        if (document.getElementById("shuffleMode").checked) shuffledList = shuffle([...quizList]);
+        index = 0;
+      }
+
+      const q = list[index];
+      const question = document.getElementById("question");
+      const sentence = document.getElementById("sentence");
+      const currentIndex = document.getElementById("current-index");
+      const voiceMode = document.getElementById("voiceMode").value;
+      const koRepeat = parseInt(document.getElementById("koRepeat").value);
+      const zhRepeat = parseInt(document.getElementById("zhRepeat").value);
+      const orderMode = document.getElementById("orderMode").value;
+
+      currentIndex.textContent = `현재 문장 번호: ${index + 1}/${list.length}`;
+
+      question.classList.remove("visible");
+      sentence.classList.remove("visible");
+      speechSynthesis.cancel();
+
+      setTimeout(() => {
+        if (orderMode === "koFirst") {
+          question.textContent = `Q. ${q.ko}`;
+          question.classList.add("visible");
+          if (voiceMode === "ko" || voiceMode === "both") {
+            speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
+              setTimeout(() => {
+                sentence.textContent = q.zh;
+                sentence.classList.add("visible");
+                if (voiceMode === "zh" || voiceMode === "both") {
+                  speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
+                    updateProgressBar();
+                    if (document.getElementById("autoPlay").checked && isPlaying) {
+                      timer = setTimeout(() => {
+                        index++;
+                        showQuiz();
+                      }, 1000);
+                    }
+                  });
+                } else {
+                  updateProgressBar();
+                  if (document.getElementById("autoPlay").checked && isPlaying) {
+                    timer = setTimeout(() => {
+                      index++;
+                      showQuiz();
+                    }, 4000);
+                  }
+                }
+              }, 500);
+            });
+          }
+        } else {
+          sentence.textContent = q.zh;
+          sentence.classList.add("visible");
+          if (voiceMode === "zh" || voiceMode === "both") {
+            speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
+              setTimeout(() => {
+                question.textContent = `Q. ${q.ko}`;
+                question.classList.add("visible");
+                if (voiceMode === "ko" || voiceMode === "both") {
+                  speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
+                    updateProgressBar();
+                    if (document.getElementById("autoPlay").checked && isPlaying) {
+                      timer = setTimeout(() => {
+                        index++;
+                        showQuiz();
+                      }, 1000);
+                    }
+                  });
+                } else {
+                  updateProgressBar();
+                  if (document.getElementById("autoPlay").checked && isPlaying) {
+                    timer = setTimeout(() => {
+                      index++;
+                      showQuiz();
+                    }, 4000);
+                  }
+                }
+              }, 500);
+            });
+          }
+        }
+      }, 300);
+    }
+
+    function prevQuestion() {
+      if (index > 0) {
+        index--;
+        showQuiz();
+      }
+    }
+
+    function nextQuestion() {
+      if (index < quizList.length - 1) {
+        index++;
+        showQuiz();
+      }
+    }
+
+    function goToQuiz(id) {
+      index = id - 1;
+      showQuiz();
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      const btn = document.getElementById("toggleBtn");
+      if (isPlaying) {
+        btn.textContent = "⏸ 일시정지";
+        showQuiz();
+      } else {
+        btn.textContent = "▶ 재생";
+        clearTimeout(timer);
+        speechSynthesis.cancel();
+      }
+    }
+
+    function updateProgressBar() {
+      const progressBar = document.getElementById("progressBar");
+      const progress = (index + 1) / quizList.length * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+
+    function generateWordList() {
+      const wordListContainer = document.getElementById("wordList");
+      quizList.forEach((q, idx) => {
+        const wordItem = document.createElement("div");
+        wordItem.classList.add("word-item");
+        wordItem.textContent = q.word;
+        wordItem.onclick = () => goToQuiz(idx + 1);
+        wordListContainer.appendChild(wordItem);
+      });
+    }
+
+    shuffledList = shuffle([...quizList]);
+    generateWordList();
+    showQuiz();
+  </script>
+</body>
+</html>
