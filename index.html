@@ -1,199 +1,189 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HSK 작문 퀴즈 영상</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#001f3f">
-  <link rel="icon" href="icon.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HSK 4급 600개 단어와 예문</title>
+  <meta name="theme-color" content="#001f3f" />
+  <link rel="icon" href="icon.png" />
   <style>
     body {
       font-family: 'Noto Sans KR', sans-serif;
       background: linear-gradient(to bottom, #001f3f, #003366);
       color: #f5f5f5;
-      text-align: center;
-      padding: 2rem;
       margin: 0;
+      padding: 18px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      height: 100vh;
+      box-sizing: border-box;
     }
     h1 {
-      font-size: 2rem;
-      color: #00bfff;
-      margin-bottom: 1rem;
-    }
-    .controls {
-      margin-bottom: 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1rem;
-    }
-    .controls label {
-      font-size: 1rem;
-    }
-    .text-box {
       font-size: 1.5rem;
-      margin: 1.5rem auto;
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
-      max-width: 800px;
-      padding: 1rem;
-      border-radius: 12px;
-      background-color: rgba(255,255,255,0.1);
-      word-break: keep-all;
+      color: #00bfff;
+      margin-top: 1rem;
     }
-    .visible {
-      opacity: 1;
-    }
-    .current-word {
-      background-color: #ff6347;
-      color: white;
-      font-weight: bold;
-    }
-    button {
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      background-color: #00bfff;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #009acd;
-    }
-    select, input[type="checkbox"], input[type="number"] {
-      font-size: 1rem;
+    .progress-container {
+      margin: 1rem auto;
+      width: 90%;
+      max-width: 600px;
     }
     .progress-bar {
       width: 100%;
       background-color: #ddd;
       border-radius: 10px;
-      height: 10px;
-      margin-top: 1rem;
+      height: 3px;
+      overflow: hidden;
     }
     .progress-bar-inner {
-      width: 0;
       height: 100%;
+      width: 0;
       background-color: #00bfff;
-      border-radius: 10px;
+      transition: width 0.3s;
+    }
+    .card {
+      background: white;
+      color: #003366;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      font-size: 1.5rem;
+      transition: transform 0.3s ease;
+    }
+    .card.visible {
+      transform: scale(1.03);
+    }
+    .index-card {
+      font-size: 1rem;
+      text-align: center;
+      color: #ffffff;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+    .controls label, .controls select, .controls input {
+      font-size: 1rem;
+    }
+    .settings-panel {
+      display: none;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1rem auto;
+      padding: 1rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      max-width: 700px;
     }
     .word-list {
-      max-height: 300px;
-      overflow-y: scroll;
-      margin-top: 1rem;
-      width: 80%;
-      border: 1px solid #ddd;
+      max-height: 200px;
+      overflow-y: auto;
+      width: 90%;
+      max-width: 600px;
+      background-color: rgba(255,255,255,0.2);
       border-radius: 10px;
-      background-color: rgba(255, 255, 255, 0.2);
+      margin-bottom: 1rem;
     }
     .word-item {
       padding: 0.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
       cursor: pointer;
-      text-align: left;
-      font-size: 1rem;
-      transition: background-color 0.3s;
+      transition: background 0.3s;
     }
     .word-item:hover {
       background-color: #00bfff;
       color: white;
     }
-
+    .current-word-item {
+      color: #ff6347;
+      font-weight: bold;
+    }
     @media (max-width: 600px) {
-      body {
-        padding: 1rem;
-      }
-      h1 {
-        font-size: 1.5rem;
-      }
-      .text-box {
-        font-size: 1.2rem;
-        padding: 0.8rem;
-      }
-      button {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-      }
+      h1 { font-size: 1.5rem; }
+      .card { font-size: 1.2rem; }
+      button { font-size: 0.9rem; }
     }
   </style>
 </head>
 <body>
-  <h1>📘 HSK 4급 작문 퀴즈</h1>
+  <h1>📘 HSK 4급 600개 단어와 예문</h1>
 
-  <div class="controls">
-    <label>
-      <input type="checkbox" id="autoPlay" checked>
-      자동 재생
-    </label>
-    <label>
-      음성:
-      <select id="voiceMode">
-        <option value="zh">중국어만</option>
-        <option value="ko">한글만</option>
-        <option value="both" selected>중국어+한글</option>
-        <option value="none">음성 없음</option>
-      </select>
-    </label>
-    <label>
-      한글 반복: <input type="number" id="koRepeat" value="1" min="1" max="5">
-    </label>
-    <label>
-      중국어 반복: <input type="number" id="zhRepeat" value="1" min="1" max="5">
-    </label>
-    <label>
-      <input type="checkbox" id="shuffleMode"> 랜덤 순서
-    </label>
-    <label>
-      문장 순서:
-      <select id="orderMode">
-        <option value="koFirst">한글 먼저</option>
-        <option value="zhFirst">중국어 먼저</option>
-      </select>
-    </label>
-    <button onclick="togglePlay()" id="toggleBtn">⏸ 일시정지</button>
-  </div>
-
-  <div id="progress-container">
+  <div class="progress-container">
     <div class="progress-bar">
       <div class="progress-bar-inner" id="progressBar"></div>
     </div>
   </div>
 
-  <div id="quiz-container">
-    <h2 id="question" class="text-box">Q. 나는 병원에 가야 해</h2>
-    <div class="text-box" id="sentence">我应该去看医生。</div>
-  </div>
+  <div id="quiz-container"></div>
 
   <div class="controls">
     <button onclick="prevQuestion()">⏪ 이전</button>
+    <button onclick="togglePlay()" id="toggleBtn">▶ 재생</button>
     <button onclick="nextQuestion()">다음 ⏩</button>
+    <button onclick="toggleSettings()">⚙️ 설정</button>
+  </div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <label><input type="checkbox" id="autoPlay" checked> 자동 재생</label>
+    <label>음성: <select id="voiceMode">
+      <option value="zh">중국어만</option>
+      <option value="ko">한글만</option>
+      <option value="both" selected>중국어+한글</option>
+      <option value="none">음성 없음</option>
+    </select></label>
+    <label>한글 반복: <input type="number" id="koRepeat" value="1" min="1" max="5"></label>
+    <label>중국어 반복: <input type="number" id="zhRepeat" value="1" min="1" max="5"></label>
+    <label>문장 순서: <select id="orderMode">
+      <option value="koFirst">한글 먼저</option>
+      <option value="zhFirst">중국어 먼저</option>
+    </select></label>
+    <button onclick="shuffleNow()">🔀 랜덤 재생</button>
   </div>
 
   <div class="word-list" id="wordList"></div>
 
   <script src="quiz-data.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('Service Worker Registered'));
-    }
-
     let index = 0;
-    let isPlaying = true;
+    let isPlaying = false;
     let timer = null;
     let shuffledList = [];
 
+    window.onload = () => {
+      document.getElementById("toggleBtn").textContent = "▶ 재생";
+      generateWordList();
+      showQuiz();
+    };
+
+    function toggleSettings() {
+      const panel = document.getElementById("settingsPanel");
+      panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+    }
+
     function shuffle(array) {
-      let currentIndex = array.length, randomIndex;
-      while (currentIndex !== 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
       }
       return array;
+    }
+
+    function shuffleNow() {
+      shuffledList = shuffle([...quizList]);
+      index = 0;
+      clearTimeout(timer);
+      speechSynthesis.cancel();
+      generateWordList();
+      showQuiz();
     }
 
     function speakMultiple(text, lang, count, callback) {
@@ -203,151 +193,124 @@
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = lang;
         utter.rate = 1.0;
-        utter.onend = () => {
-          spoken++;
-          speakOnce();
-        };
+        utter.onend = () => { spoken++; speakOnce(); };
         speechSynthesis.speak(utter);
       };
       speakOnce();
     }
 
     function showQuiz() {
-      const list = document.getElementById("shuffleMode").checked ? shuffledList : quizList;
-      if (index >= list.length) {
-        if (document.getElementById("shuffleMode").checked) shuffledList = shuffle([...quizList]);
-        index = 0;
+      const list = shuffledList.length ? shuffledList : quizList;
+      if (index >= list.length) index = 0;
+      const q = list[index];
+      const orderMode = document.getElementById("orderMode").value;
+
+      const quizContainer = document.getElementById("quiz-container");
+      quizContainer.innerHTML = `<div class="index-card">현재 문장 번호: ${index + 1}/${list.length}</div>`;
+
+      if (orderMode === "zhFirst") {
+        quizContainer.innerHTML += `<div class="card visible" id="sentence">${q.zh}</div>`;
+        quizContainer.innerHTML += `<div class="card" id="question">${q.ko}</div>`;
+      } else {
+        quizContainer.innerHTML += `<div class="card visible" id="question">${q.ko}</div>`;
+        quizContainer.innerHTML += `<div class="card" id="sentence">${q.zh}</div>`;
       }
 
-      const q = list[index];
       const question = document.getElementById("question");
       const sentence = document.getElementById("sentence");
-      const voiceMode = document.getElementById("voiceMode").value;
-      const koRepeat = parseInt(document.getElementById("koRepeat").value);
-      const zhRepeat = parseInt(document.getElementById("zhRepeat").value);
-      const orderMode = document.getElementById("orderMode").value;
 
       question.classList.remove("visible");
       sentence.classList.remove("visible");
       speechSynthesis.cancel();
 
+      const voiceMode = document.getElementById("voiceMode").value;
+      const koRepeat = parseInt(document.getElementById("koRepeat").value);
+      const zhRepeat = parseInt(document.getElementById("zhRepeat").value);
+
       setTimeout(() => {
         if (orderMode === "koFirst") {
-          question.textContent = `Q. ${q.ko}`;
           question.classList.add("visible");
           if (voiceMode === "ko" || voiceMode === "both") {
             speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
-              setTimeout(() => {
-                sentence.textContent = q.zh;
-                sentence.classList.add("visible");
-                if (voiceMode === "zh" || voiceMode === "both") {
-                  speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
-                    updateProgressBar();
-                    if (document.getElementById("autoPlay").checked && isPlaying) {
-                      timer = setTimeout(() => {
-                        index++;
-                        showQuiz();
-                      }, 1000);
-                    }
-                  });
-                } else {
-                  updateProgressBar();
-                  if (document.getElementById("autoPlay").checked && isPlaying) {
-                    timer = setTimeout(() => {
-                      index++;
-                      showQuiz();
-                    }, 4000);
-                  }
-                }
-              }, 500);
+              sentence.classList.add("visible");
+              if (voiceMode === "zh" || voiceMode === "both") {
+                speakMultiple(q.zh, 'zh-CN', zhRepeat, afterSpeech);
+              } else afterSpeech();
             });
+          } else {
+            sentence.classList.add("visible");
+            afterSpeech();
           }
         } else {
-          sentence.textContent = q.zh;
           sentence.classList.add("visible");
           if (voiceMode === "zh" || voiceMode === "both") {
             speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
-              setTimeout(() => {
-                question.textContent = `Q. ${q.ko}`;
-                question.classList.add("visible");
-                if (voiceMode === "ko" || voiceMode === "both") {
-                  speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
-                    updateProgressBar();
-                    if (document.getElementById("autoPlay").checked && isPlaying) {
-                      timer = setTimeout(() => {
-                        index++;
-                        showQuiz();
-                      }, 1000);
-                    }
-                  });
-                } else {
-                  updateProgressBar();
-                  if (document.getElementById("autoPlay").checked && isPlaying) {
-                    timer = setTimeout(() => {
-                      index++;
-                      showQuiz();
-                    }, 4000);
-                  }
-                }
-              }, 500);
+              question.classList.add("visible");
+              if (voiceMode === "ko" || voiceMode === "both") {
+                speakMultiple(q.ko, 'ko-KR', koRepeat, afterSpeech);
+              } else afterSpeech();
             });
+          } else {
+            question.classList.add("visible");
+            afterSpeech();
           }
         }
       }, 300);
+      generateWordList();
+    }
+
+    function afterSpeech() {
+      updateProgressBar();
+      if (document.getElementById("autoPlay").checked && isPlaying) {
+        timer = setTimeout(() => {
+          index++;
+          showQuiz();
+        }, 1000);
+      }
     }
 
     function prevQuestion() {
-      if (index > 0) {
-        index--;
-        showQuiz();
-      }
+      if (index > 0) index--;
+      showQuiz();
     }
 
     function nextQuestion() {
-      if (index < quizList.length - 1) {
-        index++;
-        showQuiz();
-      }
-    }
-
-    function goToQuiz(id) {
-      index = id - 1;
+      const list = shuffledList.length ? shuffledList : quizList;
+      if (index < list.length - 1) index++;
       showQuiz();
     }
 
     function togglePlay() {
       isPlaying = !isPlaying;
       const btn = document.getElementById("toggleBtn");
-      if (isPlaying) {
-        btn.textContent = "⏸ 일시정지";
-        showQuiz();
-      } else {
-        btn.textContent = "▶ 재생";
+      btn.textContent = isPlaying ? "⏸ 일시정지" : "▶ 재생";
+      if (isPlaying) showQuiz();
+      else {
         clearTimeout(timer);
         speechSynthesis.cancel();
       }
     }
 
     function updateProgressBar() {
-      const progressBar = document.getElementById("progressBar");
-      const progress = (index + 1) / quizList.length * 100;
-      progressBar.style.width = `${progress}%`;
+      const list = shuffledList.length ? shuffledList : quizList;
+      const progress = ((index + 1) / list.length) * 100;
+      document.getElementById("progressBar").style.width = `${progress}%`;
     }
 
     function generateWordList() {
-      const wordListContainer = document.getElementById("wordList");
-      quizList.forEach((q, idx) => {
-        const wordItem = document.createElement("div");
-        wordItem.classList.add("word-item");
-        wordItem.textContent = q.word;
-        wordItem.onclick = () => goToQuiz(idx + 1);
-        wordListContainer.appendChild(wordItem);
+      const container = document.getElementById("wordList");
+      container.innerHTML = '';
+      const list = shuffledList.length ? shuffledList : quizList;
+
+      list.forEach((q, idx) => {
+        const div = document.createElement("div");
+        div.classList.add("word-item");
+        if (idx === index) div.classList.add("current-word-item");
+        div.textContent = `${idx + 1}. ${q.word}`;
+        div.onclick = () => { index = idx; showQuiz(); };
+        container.appendChild(div);
       });
     }
-
-    shuffledList = shuffle([...quizList]);
-    generateWordList();
-    showQuiz();
   </script>
 </body>
 </html>
