@@ -16,8 +16,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       box-sizing: border-box;
+      position: relative;
     }
     h1 {
       font-size: 1.5rem;
@@ -68,7 +69,7 @@
       flex-wrap: wrap;
       gap: 1rem;
       justify-content: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
     .controls label, .controls select, .controls input {
       font-size: 1rem;
@@ -106,6 +107,35 @@
     .current-word-item {
       color: #ff6347;
       font-weight: bold;
+    }
+    .share-btn {
+      background-color: #00bfff;
+      border: none;
+      padding: 0.5rem 1rem;
+      color: white;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    .share-btn:hover {
+      background-color: #009acd;
+    }
+    .footer {
+      background: rgba(0,0,0,0.2);
+      color: #ccc;
+      text-align: center;
+      font-size: 0.9rem;
+      padding: 1rem;
+      width: 100%;
+      position: fixed;
+      bottom: 0;
+      backdrop-filter: blur(4px);
+    }
+    @media (orientation: landscape) {
+      .footer {
+        position: static;
+      }
     }
     @media (max-width: 600px) {
       h1 { font-size: 1.5rem; }
@@ -150,7 +180,8 @@
   </div>
 
   <div class="word-list" id="wordList"></div>
-
+  <button class="share-btn" onclick="copyLink()">📤 친구에게 공유하기</button>
+  <div class="footer">ⓒ 2025. 박산하 All rights reserved.</div>
   <script src="quiz-data.js"></script>
   <script>
     let index = 0;
@@ -311,6 +342,12 @@
         container.appendChild(div);
       });
     }
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert("링크가 복사되었습니다!");
+      });
+    }
+
   </script>
 </body>
 </html>
