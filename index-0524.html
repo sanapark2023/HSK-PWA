@@ -116,7 +116,7 @@
       border-radius: 8px;
       font-size: 0.95rem;
       cursor: pointer;
-      margin-bottom: 1rem;
+      margin-bottom: 0.6rem;
     }
     .share-btn:hover {
       background-color: #009acd;
@@ -175,8 +175,10 @@
     <button onclick="shuffleNow()">🔀 랜덤 재생</button>
   </div>
   <div class="word-list" id="wordList"></div>
-  <button class="share-btn" onclick="copyLink()">📤 친구에게 공유하기</button>
-  <div class="footer">ⓒ 2025. 박산하 All rights reserved.</div>
+  
+  <div class="footer">
+    <button class="share-btn" onclick="copyLink()">📤 친구에게 공유하기</button><br/>
+    ⓒ 2025. 박산하 All rights reserved.</div>
   <script src="quiz-data.js"></script>
   <script>
     let index = 0;
