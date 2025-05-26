@@ -1,0 +1,75 @@
+    /* GNB */
+    .gnb {
+        background: #fff;
+        border-bottom: 1px solid #eee;
+        width: 100%;
+        padding: 10px 20px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      .gnb-inner {
+        max-width: 960px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+  
+      .logo {
+        font-size: 18px;
+        font-weight: bold;
+      }
+  
+      .menu {
+        display: flex;
+        gap: 16px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        align-items: center;
+      }
+  
+      .menu li a,
+      .menu li button {
+        text-decoration: none;
+        color: #333;
+        font-size: 14px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 6px;
+      }
+  
+      .menu li a:hover,
+      .menu li button:hover {
+        background-color: #f0f0f0;
+      }
+  
+      .hamburger {
+        display: none;
+        font-size: 24px;
+        cursor: pointer;
+      }
+  
+      @media (max-width: 600px) {
+        .menu {
+          display: none;
+          flex-direction: column;
+          position: absolute;
+          top: 60px;
+          right: 20px;
+          background: white;
+          border: 1px solid #ddd;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          border-radius: 8px;
+          padding: 10px;
+        }
+        .menu.show {
+          display: flex;
+        }
+        .hamburger {
+          display: block;
+        }
+      }

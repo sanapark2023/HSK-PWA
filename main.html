@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>중국어 암기장 - 홈</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9fafc;
+    }
+    /* 메인 Hero 영역 */
+    .hero {
+      text-align: center;
+      padding: 80px 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 30px;
+    }
+
+    .hero .cta-btn {
+      font-size: 16px;
+      padding: 12px 24px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .hero .cta-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+<div id="gnb"></div>
+<script>
+    fetch('./gnb.html')
+        .then(res => res.text())
+        .then(html => {
+        document.getElementById('gnb').innerHTML = html;
+        });
+  </script>
+  <script type="module" src="gnb.js"></script>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>중국어 단어, 더 이상 잊지 마세요</h1>
+    <p>자동 반복, 구독 기반 암기 훈련으로<br/>당신의 어휘력을 매일 조금씩 업그레이드하세요.</p>
+    <a href="#" id="start-btn" class="cta-btn">지금 시작하기</a>
+  </section>
+
+  <!-- Firebase & 로그아웃 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+  
+    const firebaseConfig = {
+      apiKey: "AIzaSyBp_23RUeWCUjziHfGi9gDIOmzB8-3gQiM",
+      authDomain: "chinese-vocab-app-113d0.firebaseapp.com",
+      databaseURL: "https://chinese-vocab-app-113d0-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "chinese-vocab-app-113d0",
+      storageBucket: "chinese-vocab-app-113d0.firebasestorage.app",
+      messagingSenderId: "677244705660",
+      appId: "1:677244705660:web:cf3181ed0a09a93fbe22f9",
+      measurementId: "G-KF1N4QH1X0"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+  
+    document.querySelector(".hamburger")?.addEventListener("click", () => {
+      document.querySelector(".menu").classList.toggle("show");
+    });
+  
+    // ✅ "지금 시작하기" 버튼 핸들링
+    document.getElementById("start-btn")?.addEventListener("click", (e) => {
+      e.preventDefault(); // 기본 이동 방지
+      onAuthStateChanged(auth, (user) => {
+        if (user && user.emailVerified) {
+          window.location.href = "words.html";
+        } else {
+          window.location.href = "auth.html";
+        }
+      });
+    });
+  
+    // ✅ 로그아웃 버튼
+    let isLoggingOut = false;
+    document.getElementById("logout-btn")?.addEventListener("click", async () => {
+      isLoggingOut = true;
+      await signOut(auth);
+      alert("로그아웃되었습니다.");
+      window.location.href = "auth.html";
+    });
+  </script>
+  
+
+</body>
+</html>

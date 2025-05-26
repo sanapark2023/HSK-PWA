@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회원가입 / 로그인</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding-top: 100px;
+    }
+
+    .logo-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      padding: 14px 24px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+      display: flex;
+      flex-direction: row;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: none;
+      color: #333;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 320px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 로고 -->
+  <div class="logo-bar">
+    <a href="index.html" class="logo">📘 중국어 HSK 암기로봇</a>
+  </div>
+
+  <div class="container">
+    <h2>중국어 암기장 로그인</h2>
+    <input type="email" id="email" placeholder="이메일" />
+    <input type="password" id="password" placeholder="비밀번호 (6자 이상)" />
+    <button id="signup-btn">회원가입</button>
+    <button id="login-btn">로그인</button>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBp_23RUeWCUjziHfGi9gDIOmzB8-3gQiM",
+      authDomain: "chinese-vocab-app-113d0.firebaseapp.com",
+      databaseURL: "https://chinese-vocab-app-113d0-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "chinese-vocab-app-113d0",
+      storageBucket: "chinese-vocab-app-113d0.firebasestorage.app",
+      messagingSenderId: "677244705660",
+      appId: "1:677244705660:web:cf3181ed0a09a93fbe22f9",
+      measurementId: "G-KF1N4QH1X0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const analytics = getAnalytics(app);
+
+    const message = document.getElementById('message');
+
+    // 리디렉션 URL 확인
+    const params = new URLSearchParams(location.search);
+    const redirectTo = params.get("redirect") || "mypage.html";
+
+    function translateError(error) {
+      const code = error.code;
+      if (code === 'auth/email-already-in-use') return '이미 사용 중인 이메일입니다';
+      if (code === 'auth/invalid-email') return '올바른 이메일 주소를 입력해주세요';
+      if (code === 'auth/weak-password') return '비밀번호는 최소 6자 이상이어야 합니다';
+      if (code === 'auth/user-not-found') return '가입되지 않은 이메일입니다';
+      if (code === 'auth/wrong-password') return '비밀번호가 올바르지 않습니다';
+      return error.message;
+    }
+
+    document.getElementById('signup-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+        await set(ref(db, 'users/' + uid), { status: "none" });
+        await sendEmailVerification(userCredential.user);
+        message.style.color = 'green';
+        message.textContent = "회원가입 완료! 이메일을 확인해 인증을 완료해주세요.";
+      } catch (error) {
+        message.style.color = 'red';
+        message.textContent = translateError(error);
+      }
+    });
+
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        if (!userCredential.user.emailVerified) {
+          message.style.color = 'red';
+          message.textContent = "이메일 인증 후 로그인해주세요.";
+          return;
+        }
+        message.style.color = 'green';
+        message.textContent = "로그인 성공!";
+        window.location.href = redirectTo;
+      } catch (error) {
+        message.style.color = 'red';
+        message.textContent = translateError(error);
+      }
+    });
+  </script>
+</body>
+</html>
