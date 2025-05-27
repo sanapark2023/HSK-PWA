@@ -3,94 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>구독하기</title>
+  <title>구독 결제</title>
   <link href="https://fonts.googleapis.com/css2?family=Pretendard&display=swap" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://democpay.payple.kr/js/v1/payment.js"></script>
   <style>
     body {
       font-family: 'Pretendard', sans-serif;
-      margin: 0;
-      background: #f9fafc;
+      background: #f6f8fa;
+      text-align: center;
+      padding-top: 100px;
     }
     .container {
-      max-width: 600px;
-      margin: 80px auto;
-      padding: 30px;
       background: white;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      text-align: center;
+      padding: 30px;
+      border-radius: 20px;
+      width: 360px;
+      margin: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-
-    .status-message {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 30px;
-    }
-
-    .subscribe-btn {
-      font-size: 16px;
-      padding: 12px 24px;
+    button {
       background-color: #007BFF;
       color: white;
       border: none;
+      padding: 12px 20px;
+      font-size: 16px;
       border-radius: 8px;
       cursor: pointer;
     }
-
-    .subscribe-btn:hover {
-      background-color: #0056b3;
-    }
-
-    .spinner {
-      margin: 80px auto;
-      border: 5px solid #eee;
-      border-top: 5px solid #007BFF;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .message {
+      margin-top: 20px;
+      font-size: 14px;
+      color: green;
     }
   </style>
 </head>
 <body>
-
-  <!-- GNB 복붙 -->
-  <div id="gnb"></div>
-<script>
-    fetch('./gnb.html')
-        .then(res => res.text())
-        .then(html => {
-        document.getElementById('gnb').innerHTML = html;
-        });
-  </script>
-  <script type="module" src="gnb.js"></script>
-
   <div class="container">
-    <div class="spinner" id="loading"></div>
-
-    <div id="content" style="display:none;">
-      <h1>프리미엄 구독</h1>
-      <div id="status-message" class="status-message">구독 상태를 불러오는 중...</div>
-      <button id="subscribe-btn" class="subscribe-btn" style="display:none;">지금 구독하기</button>
-      <a href="https://steppay.kr/pay/product_iTIcP3kIU">
-        <button>지금 결제하기</button>
-      </a>
-    </div>
+    <h2>프리미엄 구독</h2>
+    <p>월 ₩3,000 - 카드 등록 및 첫 결제</p>
+    <button id="btnSubscribe">구독 결제하기</button>
+    <div class="message" id="message"></div>
   </div>
 
+  <!-- Firebase 연동 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBp_23RUeWCUjziHfGi9gDIOmzB8-3gQiM",
@@ -104,59 +64,62 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getDatabase(app);
+    const auth = getAuth(app);
 
-    const loadingEl = document.getElementById("loading");
-    const contentEl = document.getElementById("content");
-    const statusMessageEl = document.getElementById("status-message");
-    const subscribeBtn = document.getElementById("subscribe-btn");
+    let currentUser = null;
 
-    let isLoggingOut = false;
-
-    document.querySelector(".hamburger")?.addEventListener("click", () => {
-      document.querySelector(".menu").classList.toggle("show");
-    });
-
-    document.getElementById("logout-btn")?.addEventListener("click", async () => {
-      isLoggingOut = true;
-      await signOut(auth);
-      alert("로그아웃되었습니다.");
-      window.location.href = "auth.html";
-    });
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user || !user.emailVerified) {
-        if (!isLoggingOut) {
-          alert("로그인이 필요합니다.");
-          window.location.href = "auth.html";
-        }
-        return;
+    // 인증된 사용자 확인
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        alert("로그인 후 이용해주세요.");
+        window.location.href = "auth.html";
+      } else {
+        currentUser = user;
       }
+    });
 
-      try {
-        const statusSnap = await get(ref(db, 'users/' + user.uid + '/status'));
-        const status = statusSnap.exists() ? statusSnap.val() : "none";
+    // 결제 결과 콜백 함수
+    window.handlePayResult = async function(params) {
+      const message = document.getElementById("message");
 
-        loadingEl.style.display = "none";
-        contentEl.style.display = "block";
+      if (params.PCD_PAY_RST === 'success') {
+        const billingKey = params.PCD_PAYER_ID;
+        const uid = currentUser.uid;
 
-        if (status === "active") {
-          statusMessageEl.textContent = "이미 프리미엄 회원입니다!";
-        } else {
-          statusMessageEl.textContent = "프리미엄 구독을 통해 전체 기능을 이용해보세요.";
-          subscribeBtn.style.display = "inline-block";
-        }
-
-        subscribeBtn.addEventListener("click", () => {
-          // 실제 구독 결제 페이지로 이동 (예: billingKey.html)
-          window.location.href = "payple-billing.html"; // 혹은 연동 API 페이지
+        await set(ref(db, 'users/' + uid), {
+          billingKey: billingKey,
+          status: 'active',
+          purchasedAt: new Date().toISOString()
         });
 
-      } catch (err) {
-        alert("구독 상태를 불러오는 데 실패했습니다.");
-        console.error(err);
+        message.style.color = 'green';
+        message.textContent = "결제가 완료되었습니다! 구독이 활성화되었습니다.";
+        setTimeout(() => {
+          window.location.href = "words.html";
+        }, 2000);
+      } else {
+        message.style.color = 'red';
+        message.textContent = "결제 실패: " + params.PCD_PAY_MSG;
       }
+    };
+
+    // 결제 버튼 이벤트
+    $(document).ready(function() {
+      $('#btnSubscribe').on('click', function () {
+        const obj = {
+          clientKey: "test_DF55F29DA654A8CBC0F0A9DD4B556486",
+          PCD_PAY_TYPE: "card",         // 카드결제
+          PCD_PAY_WORK: "CERT",         // 카드등록 + 결제
+          PCD_CARD_VER: "01",           // 정기결제 방식
+          PCD_PAY_GOODS: "중국어 프리미엄 구독",
+          PCD_PAY_TOTAL: 3000,          // 결제 금액
+          PCD_RST_URL: "/result",       // 서버 처리용 (필요 없으면 placeholder)
+          callbackFunction: handlePayResult
+        };
+
+        PaypleCpayAuthCheck(obj);
+      });
     });
   </script>
 </body>
