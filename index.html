@@ -59,7 +59,7 @@
     <button onclick="startDraw()">추첨 시작</button>
     </div>
   <div class="results" style="height: 100%;">
-    <h3>🌟 1등</h3><ul id="first"></ul>
+    
     <h3>👑 2등 (10명)</h3><ul id="second"></ul>
     <h3>🎉 3등 (20명)</h3><ul id="third"></ul>
   </div>
@@ -199,7 +199,7 @@ const participants = [
 
     async function startDraw() {
       currentWinners = new Set();
-      document.getElementById("first").innerHTML = "";
+      //document.getElementById("first").innerHTML = "";
       document.getElementById("second").innerHTML = "";
       document.getElementById("third").innerHTML = "";
       rotation = 0;
@@ -207,7 +207,7 @@ const participants = [
       buildTicketPool();
       drawWheel();
 
-      await spinOnce("1st", "first");
+      //await spinOnce("1st", "first");
       for (let i = 0; i < 10; i++) {
         await spinOnce("2nd", "second");
       }
