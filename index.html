@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>가중치 룰렛 추첨기</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 30px; }
+    canvas { border-radius: 50%; border: 2px solid #333; transition: transform 3s ease-out; }
+    button {margin-top: 30px;}
+    .arrow {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateX(-50%) rotate(-45deg);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid red;
+      z-index: 10; /* 캔버스보다 위로 올라오게 설정 */
+    }
+    .container {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      margin: 0 auto;
+    }
+    .results { margin-top: 30px; }
+    h3 { margin-bottom: 5px; }
+    ul { padding-left: 0; list-style: none; }
+    .winner-popup {
+      font-size: 28px;
+      font-weight: bold;
+      color: #d32f2f;
+      animation: pop 1s ease-out;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 999;
+    }
+    @keyframes pop {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      60% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>예투 가입하면 100만원 이벤트 룰렛</h2>
+  <div style="display: flex; flex-direction: row; gap: 100px; justify-content: center; align-items: center; margin-top: 30px;">
+    <div class="containter2">
+    <div class="container">
+        <div class="arrow"></div>
+        <canvas id="wheel" width="500" height="500"></canvas>
+        <div id="popup" class="winner-popup" style="display:none;"></div>
+    </div>
+    <button onclick="startDraw()">추첨 시작</button>
+    </div>
+  <div class="results" style="height: 100%;">
+    <h3>🌟 1등</h3><ul id="first"></ul>
+    <h3>👑 2등 (10명)</h3><ul id="second"></ul>
+    <h3>🎉 3등 (20명)</h3><ul id="third"></ul>
+  </div>
+</div>
+
+  <script>
+const participants = [
+  { name: "류주영", tickets: 5 },
+  { name: "임원진", tickets: 1 },
+  { name: "구현정", tickets: 27 },
+  { name: "박산하", tickets: 3 },
+  { name: "남진현", tickets: 1 },
+  { name: "강보규", tickets: 1 },
+  { name: "Sean Lim", tickets: 1 },
+  { name: "박지수", tickets: 1 },
+  { name: "조영린", tickets: 11 },
+  { name: "서수연", tickets: 1 },
+  { name: "변가을", tickets: 8 },
+  { name: "함영미", tickets: 2 },
+  { name: "변지선", tickets: 2 },
+  { name: "Jay Choi", tickets: 7 },
+  { name: "조태현", tickets: 2 },
+  { name: "공도현", tickets: 2 },
+  { name: "luna lee", tickets: 2 },
+  { name: "김성원", tickets: 2 },
+  { name: "11yjh11", tickets: 2 },
+  { name: "trumc", tickets: 1 },
+  { name: "조민선", tickets: 2 },
+  { name: "박제민", tickets: 1 },
+  { name: "하니", tickets: 2 },
+  { name: "김건우", tickets: 1 },
+  { name: "염정훈", tickets: 1 },
+  { name: "eris9", tickets: 1 },
+  { name: "이준영", tickets: 1 },
+  { name: "김재우", tickets: 1 },
+  { name: "김성신", tickets: 1 },
+  { name: "김서현", tickets: 2 },
+  { name: "영민", tickets: 2 },
+  { name: "blueraindrops", tickets: 2 },
+  { name: "최종식", tickets: 3 },
+  { name: "이시영", tickets: 2 },
+  { name: "허광현", tickets: 2 }
+];
+
+
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const popup = document.getElementById("popup");
+    let ticketPool = [];
+    let currentWinners = new Set();
+    let rotation = 0;
+
+    function buildTicketPool() {
+      ticketPool = [];
+      participants.forEach(p => {
+        if (!currentWinners.has(p.name)) {
+          for (let i = 0; i < p.tickets; i++) {
+            ticketPool.push(p.name);
+          }
+        }
+      });
+    }
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, 500, 500);
+      let total = ticketPool.length;
+      let counts = {};
+      ticketPool.forEach(name => counts[name] = (counts[name] || 0) + 1);
+      let uniqueNames = Object.keys(counts);
+      let startAngle = 0;
+      uniqueNames.forEach((name, i) => {
+        const slice = (counts[name] / total) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(250, 250);
+        ctx.arc(250, 250, 250, startAngle, startAngle + slice);
+        ctx.fillStyle = `hsl(${i * 25}, 70%, 60%)`;
+        ctx.fill();
+        ctx.save();
+        ctx.translate(250, 250);
+        ctx.rotate(startAngle + slice / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "14px sans-serif";
+        ctx.fillText(name, 230, 0);
+        ctx.restore();
+        startAngle += slice;
+      });
+    }
+
+    function spinOnce(prizeLevel, ulId) {
+      return new Promise(resolve => {
+        buildTicketPool();
+        drawWheel();
+
+        const randIndex = Math.floor(Math.random() * ticketPool.length);
+        const chosenName = ticketPool[randIndex];
+        let total = ticketPool.length;
+        let counts = {};
+        ticketPool.forEach(name => counts[name] = (counts[name] || 0) + 1);
+        let uniqueNames = Object.keys(counts);
+
+        // Calculate where the chosen name is located in degrees (clockwise from 0)
+        let startAngle = 0;
+        let chosenAngle = 0;
+        for (let name of uniqueNames) {
+          const slice = (counts[name] / total) * 360;
+          if (name === chosenName) {
+            chosenAngle = startAngle + slice / 2;
+            break;
+          }
+          startAngle += slice;
+        }
+
+        // 보정된 회전 각도: 선택된 이름이 180도(6시 방향)에 오도록 조정
+        const targetAngle = 180;
+        const currentRotation = rotation % 360;
+        const delta = (360 + targetAngle - chosenAngle - currentRotation) % 360;
+        const spinAngle = 360 * 5 + delta;
+        rotation += spinAngle;
+        canvas.style.transform = `rotate(${rotation}deg)`;
+
+        setTimeout(() => {
+          currentWinners.add(chosenName);
+          const ul = document.getElementById(ulId);
+          const li = document.createElement("li");
+          li.textContent = chosenName;
+          ul.appendChild(li);
+
+          popup.textContent = `🎉 ${chosenName} 당첨!`;
+          popup.style.display = 'block';
+          setTimeout(() => popup.style.display = 'none', 2000);
+
+          resolve();
+        }, 5000);
+      });
+    }
+
+    async function startDraw() {
+      currentWinners = new Set();
+      document.getElementById("first").innerHTML = "";
+      document.getElementById("second").innerHTML = "";
+      document.getElementById("third").innerHTML = "";
+      rotation = 0;
+
+      buildTicketPool();
+      drawWheel();
+
+      await spinOnce("1st", "first");
+      for (let i = 0; i < 10; i++) {
+        await spinOnce("2nd", "second");
+      }
+      for (let i = 0; i < 20; i++) {
+        await spinOnce("3rd", "third");
+      }
+    }
+
+    buildTicketPool();
+    drawWheel();
+  </script>
+</body>
+</html>
