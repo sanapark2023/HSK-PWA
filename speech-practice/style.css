@@ -1,0 +1,131 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #090400;
+    color: silver;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #131313;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+  
+  h1 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 38px;
+    font-weight: 700;
+    background-image: linear-gradient(90deg, #ffdf56, #ff8735 50%, #ffa6c1);
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  
+  .chat-box {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #3a3a3a;
+    padding: 15px;
+    background: #1d1d1f;
+    border-radius: 12px;
+    color: white;
+  }
+  
+  .message {
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  
+  .user {
+    text-align: right;
+    color: #ff8735;
+  }
+  
+  .bot {
+    text-align: left;
+    color: #ffa6c1;
+  }
+  
+  .input-area {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+  }
+  
+  .input-area input[type="password"] {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    background-color: #262626;
+    color: white;
+  }
+  
+  #start-record {
+    background: #ffdf56;
+    color: #090400;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 100px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  #start-record:hover {
+    background: #ff8735;
+  }
+  
+  .scenario-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .scenario-buttons button {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 100px;
+    border: none;
+    background-color: #3a3a3a;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .scenario-buttons button:hover {
+    background-color: #ff8735;
+  }
+  
+  .language-selector {
+    margin: 16px auto;
+    text-align: center;
+  }
+  
+  .language-selector select {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 12px;
+    background-color: #1d1d1f;
+    color: white;
+    border: 1px solid #333;
+  }
+  
+  .speaker-button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 5px;
+    vertical-align: middle;
+    color: #ffdf56;
+  }
+  
