@@ -80,10 +80,16 @@
 <body>
   <div class="main">
     <h2>📝 HSK 4급 작문 퀴즈</h2>
+    <div>
+      <span id="progress">문제 1 / N</span>
+      <button onclick="shuffleQuestions()">🔀 섞기</button>
+    </div>
 
     <div id="question">
       <strong>Q. 다음 한국어 문장을 중국어로 작문하세요:</strong>
       <p id="korean"></p>
+      <button id="toggleHintBtn" onclick="toggleHint()">💡 힌트 보기</button>
+      <div id="hintBox" style="display: none; margin-top: 0.5rem; color: #555; font-style: italic;"></div>
     </div>
 
     <label>당신의 중국어 답변:</label><br>
@@ -102,44 +108,34 @@
     <h3>📌 오답노트</h3>
     <div id="wrongList"></div>
   </div>
-
+  <script src="quiz-data2.js"></script>
   <script>
-    const questions = [
-      {
-        ko: "나는 우산을 가져오는 걸 잊어버렸다.",
-        zh: "我忘记带伞了。",
-        explanation: "📌 동사구 구조 '忘记 + 动作' 활용.\n👉 '了'는 과거를 나타냅니다."
-      },
-      {
-        ko: "나는 감기에 걸려서 병원에 가야 해.",
-        zh: "我感冒了，应该去看医生。",
-        explanation: "📌 원인-결과 구조 '因为～所以～' 또는 연결만으로도 자연스럽게 표현됩니다."
-      },
-      {
-        ko: "매일 조깅하는 것은 건강에 좋아.",
-        zh: "每天跑步对身体很好。",
-        explanation: "📌 '~에 좋다'는 표현은 '对 ~ 很好'를 사용합니다."
-      },
-      {
-        ko: "지하철을 타는 것은 아주 편리하다.",
-        zh: "坐地铁很方便。",
-        explanation: "📌 '동사 + 명사 + 很 + 형용사' 구조로 자주 쓰입니다."
-      },
-      {
-        ko: "날씨가 점점 추워지고 있다.",
-        zh: "天气越来越冷了。",
-        explanation: "📌 점점 ~해지는 구조는 '越来越 + 형용사 + 了'입니다."
-      }
-    ];
-
+    const questions = quizList;
     let currentIndex = 0;
 
     function displayQuestion() {
-      document.getElementById("korean").textContent = questions[currentIndex].ko;
-      document.getElementById("userInput").value = "";
-      document.getElementById("feedback").textContent = "";
-      document.getElementById("comparison").innerHTML = "";
-      document.getElementById("explanation").textContent = "";
+  document.getElementById("korean").textContent = questions[currentIndex].ko;
+  document.getElementById("userInput").value = "";
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("comparison").innerHTML = "";
+  document.getElementById("explanation").textContent = "";
+  document.getElementById("progress").textContent = `문제 ${currentIndex + 1} / ${questions.length}`;
+  document.getElementById("hintBox").style.display = "none";
+  document.getElementById("hintBox").textContent = `${questions[currentIndex].word} (${questions[currentIndex].pinyin})` ;
+}
+function toggleHint() {
+  const hintBox = document.getElementById("hintBox");
+  hintBox.style.display = hintBox.style.display === "none" ? "block" : "none";
+}
+
+    // 문제 섞기 함수
+    function shuffleQuestions() {
+      for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+      }
+      currentIndex = 0;
+      displayQuestion();
     }
 
     function handleKey(e) {
@@ -174,10 +170,11 @@
       document.getElementById("feedback").style.color = isCorrect ? "green" : "red";
 
       document.getElementById("comparison").innerHTML = `
-        <div class="result-line">📥 <strong>내 답:</strong><br>${userInput || '(입력 없음)'}</div>
-        <div class="result-line">✅ <strong>정답:</strong><br>${highlightDiffCorrect(correct, userInput)}</div>
-      `;
-      document.getElementById("explanation").textContent = questions[currentIndex].explanation;
+  <div class="result-line">📥 <strong>내 답:</strong><br>${userInput || '(입력 없음)'}</div>
+  <div class="result-line">✅ <strong>정답:</strong><br>${highlightDiffCorrect(correct, userInput)}</div>
+  <div class="result-line" style="color: #888;">🔊 <strong>병음:</strong><br>${questions[currentIndex].zh_pinyin}</div>
+`;
+      //document.getElementById("explanation").textContent = questions[currentIndex].explanation;
 
       // 오답일 경우 오답노트에 저장
       if (!isCorrect) {
