@@ -20,6 +20,42 @@
       box-sizing: border-box;
       position: relative;
     }
+        .quiz-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1rem;
+      width: 100%;
+      max-width: 700px;
+      margin-top: 1rem;
+    }
+
+    .left-column {
+      background: white;
+      color: #003366;
+      padding: 1rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      text-align: center;
+      font-size: 1.5rem;
+    }
+
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .right-card {
+      background: white;
+      color: #003366;
+      padding: 1rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      font-size: 1.3rem;
+      text-align: center;
+    }
+
     h1 {
       font-size: 1.5rem;
       color: #00bfff;
@@ -69,6 +105,7 @@
       flex-wrap: wrap;
       gap: 1rem;
       justify-content: center;
+      margin-top: 1rem;
       margin-bottom: 1rem;
     }
     .controls label, .controls select, .controls input {
@@ -138,10 +175,19 @@
       }
     }
     @media (max-width: 600px) {
-      h1 { font-size: 1.5rem; }
-      .card { font-size: 1.2rem; }
-      button { font-size: 0.9rem; }
-    }
+  .quiz-layout {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .left-column, .right-column {
+    width: 100%;
+  }
+
+  .left-card, .right-card {
+    font-size: 1.2rem; /* 글자 크기 조정 */
+  }
+}
   </style>
 </head>
 <body>
@@ -160,6 +206,7 @@
   </div>
   <div class="settings-panel" id="settingsPanel">
     <label><input type="checkbox" id="autoPlay" checked> 자동 재생</label>
+    <label><input type="checkbox" id="hidePinyin"> 병음 숨기기</label>
     <label>음성: <select id="voiceMode">
       <option value="zh">중국어만</option>
       <option value="ko">한글만</option>
@@ -179,7 +226,7 @@
   <div class="footer">
     <button class="share-btn" onclick="copyLink()">📤 친구에게 공유하기</button><br/>
     ⓒ 2025. 박산하 All rights reserved.</div>
-  <script src="quiz-data.js"></script>
+  <script src="quiz-data2.js"></script>
   <script>
     let index = 0;
     let isPlaying = false;
@@ -187,10 +234,19 @@
     let shuffledList = [];
 
     window.onload = () => {
-      document.getElementById("toggleBtn").textContent = "▶ 재생";
-      generateWordList();
-      showQuiz();
-    };
+        document.getElementById("toggleBtn").textContent = "▶ 재생";
+        generateWordList();
+        showQuiz();
+
+        // 병음 숨기기 체크 시 즉시 반영
+        document.getElementById("hidePinyin").addEventListener("change", () => {
+          const pinyinEl = document.getElementById("pinyin");
+          if (pinyinEl) {
+            const hide = document.getElementById("hidePinyin").checked;
+            pinyinEl.style.display = hide ? "none" : "block";
+          }
+        });
+      };
 
     function toggleSettings() {
       const panel = document.getElementById("settingsPanel");
@@ -234,15 +290,23 @@
       const orderMode = document.getElementById("orderMode").value;
 
       const quizContainer = document.getElementById("quiz-container");
-      quizContainer.innerHTML = `<div class="index-card">현재 문장 번호: ${index + 1}/${list.length}</div>`;
-
-      if (orderMode === "zhFirst") {
-        quizContainer.innerHTML += `<div class="card visible" id="sentence">${q.zh}</div>`;
-        quizContainer.innerHTML += `<div class="card" id="question">${q.ko}</div>`;
-      } else {
-        quizContainer.innerHTML += `<div class="card visible" id="question">${q.ko}</div>`;
-        quizContainer.innerHTML += `<div class="card" id="sentence">${q.zh}</div>`;
-      }
+      quizContainer.innerHTML = `
+        <div class="index-card">현재 문장 번호: ${index + 1}/${list.length}</div>
+        <div class="quiz-layout">
+          <div class="left-column" style="width: 15rem">
+            <div class="left-card" id="word" style="font-size:2rem; margin-bottom:1rem">${q.word}/${q.word_traditional}</div>  
+            <div class="left-card" id="pinyin" style="font-size: 1rem; color: #007fff;">${q.pinyin} (${q.part_of_speech})</div>   
+            <div class="left-card" id="meaning_ko">${q.meaning_ko}</div> 
+          </div>
+          <div class="right-column">
+            <div class="right-card" id="question">${q.ko}</div>
+            <div class="right-card" id="sentence">
+              ${q.zh}<br>
+              <span id="zh_pinyin" style="font-size: 1rem; color: #007fff;">${q.zh_pinyin}</span>
+            </div>
+          </div>
+        </div>
+      `;
 
       const question = document.getElementById("question");
       const sentence = document.getElementById("sentence");
@@ -285,6 +349,11 @@
         }
       }, 300);
       generateWordList();
+      const hidePinyin = document.getElementById("hidePinyin").checked;
+      const pinyinEl = document.getElementById("pinyin");
+      if (pinyinEl) {
+        pinyinEl.style.display = hidePinyin ? "none" : "block";
+}
     }
 
     function afterSpeech() {
