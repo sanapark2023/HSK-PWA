@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>가중치 룰렛 추첨기</title>
+  <style>
+    body {
+  font-family: 'Pretendard', sans-serif;
+  background: linear-gradient(135deg, #4647C6, #7658CA);
+  color: #eee;
+  text-align: center;
+  margin: 0;
+  padding: 30px 0;
+}
+
+h2 {
+  color: #ffffff;
+  font-size: 36px;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+h3 {
+  color: #e0b3ff;
+  margin-bottom: 5px;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.canvas-container {
+  width: 480px;
+  height: 480px;
+  margin: auto;
+  border-radius: 50%;
+  border: 0px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),       /* 아래쪽 깊이감 */
+    0 4px 8px rgba(255, 255, 255, 0.05),   /* 위쪽 빛반사 */
+    0 0 20px rgba(79, 19, 169, 0.3),       /* 퍼플 글로우 */
+    inset 0 0 10px rgba(255, 255, 255, 0.04);  /* 내부 은은함 */
+  transition: transform 3s ease-out;
+}
+
+canvas {
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.264);
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 3s ease-out;
+}
+
+
+button {
+  margin-top: 30px;
+  background: linear-gradient(to right, #0C085F, #0C085F);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translate(-100%, -50%) rotate(90deg);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 30px solid #ff0080;
+  filter: drop-shadow(0 0 6px #ff8ce2)
+          drop-shadow(0 0 12px #fff)
+          drop-shadow(0 0 16px #ff8ce2);
+  z-index: 10;
+}
+
+.container {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  margin: 0 auto;
+}
+
+.results {
+  text-align: left;
+  color: #fff;
+  border-radius: 24px;
+  height: 100%;
+}
+.results h3{
+  margin: 0;
+}
+
+ul {
+  padding-left: 0;
+  list-style: none;
+}
+
+.winner-popup {
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+  background: rgba(50, 0, 90, 0.8);
+  padding: 16px 30px;
+  border-radius: 20px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 30px #fff, 0 0 50px #f72585;
+  animation: pop 1s ease-out, confetti 2s ease-in-out;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999;
+}
+
+@keyframes pop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  60% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes confetti {
+  0% { box-shadow: 0 0 20px #f1c40f; }
+  50% { box-shadow: 0 0 60px #f1c40f; }
+  100% { box-shadow: 0 0 20px #f1c40f; }
+}
+
+.layout {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 80px;
+  margin-top: 30px;
+  height: 100%;
+}
+
+pre#adminWinnerLog {
+  user-select: text;
+  color: #fff;
+  background: #4b0082;
+  font-size: 15px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  padding: 16px;
+  border: 2px dashed #f1c40f;
+  border-radius: 12px;
+}
+
+div[style*="margin-top: 100px"] {
+  background: linear-gradient(90deg, #6a0572, #ab83a1);
+  border-top: 3px solid #f1c40f;
+  color: #fff;
+}
+
+  </style>
+</head>
+<body style="padding: 64px;">
+  <p style="font-size: 24px; margin: 0; margin-bottom: 8px;">YEATU</p>
+  <h2 style="color: #F6EB77; font-size: 36px; margin-top: 0;">가입하면 100만원 행운 룰렛</h2>
+  <div class="layout">
+    <div class="results">
+      <h3>👑 2등 (10명)</h3>
+      <ul id="second"></ul>
+      <h3>🎉 3등 (20명)</h3>
+      <ul id="third"></ul>
+    </div>
+    <div class="containter2">
+      <div class="container">
+        <div class="arrow"></div>
+        <div class="canvas-container">
+          <canvas id="wheel" width="500" height="500"></canvas>
+        </div>
+        <div id="popup" class="winner-popup" style="display:none;"></div>
+      </div>
+      <button onclick="startDraw()">추첨 시작</button>
+    </div>
+  </div>
+
+  <div style="margin-top: 100px; padding: 20px; background: #fffbe500; border-top: 2px solid #bfa12c;">
+    <h4 style="font-weight: normal; color: #bfa12c;">※ 아래 명단은 관리자용입니다. (드래그해서 복사 가능)</h4>
+    <pre id="adminWinnerLog" style="user-select: text; color: #ab83a1; background: #fffbe500; font-size: 14px; overflow-x: auto; white-space: pre-wrap; padding: 10px; border: 1px dashed #bfa12c;"></pre>
+  </div>
+<script>
+const participants = [
+  { name: "류*영", tickets: 5, email: "juyoung.ryu@evertreasure.xyz" },
+  { name: "임*진", tickets: 6, email: "peter.im@evertreasure.xyz" },
+  { name: "구*정", tickets: 27, email: "hyunjung.koo@evertreasure.xyz" },
+  { name: "박*하", tickets: 3, email: "uni08ray@gmail.com" },
+  { name: "남*현", tickets: 1, email: "jinhyunnam@gmail.com" },
+  { name: "강*규", tickets: 1, email: "bokyukang81@gmail.com" },
+  { name: "S******", tickets: 4, email: "sean.gn7@gmail.com" },
+  { name: "박*수", tickets: 1, email: "jisubag199@gmail.com" },
+  { name: "서*연", tickets: 1, email: "tnsjrnfl@naver.com" },
+  { name: "변*을", tickets: 8, email: "autumn.byun@evertreasure.xyz" },
+  { name: "함*미", tickets: 2, email: "youjin33333@gmail.com" },
+  { name: "변*선", tickets: 2, email: "bgs5908@gmail.com" },
+  //{ name: "J******", tickets: 8, email: "stylish.jk@gmail.com" },
+  { name: "조*현", tickets: 2, email: "hyuntae60@gmail.com" },
+  { name: "공*현", tickets: 2, email: "rhdtmddnr1@naver.com" },
+  { name: "l******", tickets: 2, email: "lunarisdh@gmail.com" },
+  { name: "김*원", tickets: 2, email: "ksw6962@naver.com" },
+  { name: "1*******", tickets: 2, email: "11yjh11@naver.com" },
+  { name: "t****", tickets: 1, email: "trumc@naver.com" },
+  { name: "조*선", tickets: 2, email: "minseonjo453@gmail.com" },
+  { name: "박*민", tickets: 1, email: "begum75737540@gmail.com" },
+  { name: "하*", tickets: 2, email: "weds01125@gmail.com" },
+  { name: "김*우", tickets: 1, email: "lovebabyny@naver.com" },
+  { name: "염*훈", tickets: 1, email: "yeomjh0@gmail.com" },
+  { name: "e****", tickets: 1, email: "eris9@daum.net" },
+  { name: "이*영", tickets: 1, email: "junyoung2691@naver.com" },
+  { name: "김*우", tickets: 1, email: "wooki.creator@gmail.com" },
+  { name: "김*신", tickets: 1, email: "entia2004@naver.com" },
+  { name: "김*현", tickets: 4, email: "seohyeon.kim@evertreasure.xyz" },
+  { name: "영*", tickets: 2, email: "shinpark98@daum.net" },
+  { name: "b********", tickets: 2, email: "blueraindrops@hanmail.net" },
+  { name: "최*식", tickets: 3, email: "centmania1013@gmail.com" },
+  { name: "이*영", tickets: 2, email: "leebona1015@gmail.com" },
+  { name: "허*현", tickets: 2, email: "hankheo@naver.com" },
+  { name: "G*******", tickets: 2, email: "diefull000@gmail.com" },
+  { name: "H***********", tickets: 1, email: "hyunjung.koo@evertreasure.xyz" },
+  { name: "R********", tickets: 2, email: "roms@kakao.com" },
+  { name: "S*", tickets: 2, email: "sybaek31@gmail.com" },
+  { name: "김*겸", tickets: 1, email: "ron0719@naver.com" },
+  { name: "김*구", tickets: 2, email: "t01049350822@gmail.com" },
+  { name: "강*리", tickets: 2, email: "gnr9706@gmail.com" },
+  { name: "구*기", tickets: 2, email: "kth.ksk1209@gmail.com" },
+  { name: "오*라", tickets: 5, email: "dkfkgid@naver.com" },
+  { name: "류*욱", tickets: 1, email: "rjwhaha@hanmail.net" },
+  { name: "류*이", tickets: 2, email: "rjeho@naver.com" },
+  { name: "박*연", tickets: 1, email: "dyb2012@gmail.com" },
+  { name: "유*스", tickets: 2, email: "eunice356@naver.com" },
+  { name: "장*연", tickets: 1, email: "jang.sy720@gmail.com" },
+  { name: "m*", tickets: 2, email: "with_mj@hotmail.com" },
+  { name: "태*", tickets: 2, email: "daliza.hwan@gmail.com" },
+  { name: "e****", tickets: 1, email: "eris9@daum.net" },
+  { name: "c*********", tickets: 1, email: "ceo@hanmia.com" },
+  { name: "김*식", tickets: 1, email: "ysk1048@naver.com" },
+  { name: "김*태", tickets: 2, email: "okgoldshine1@gmail.com" },
+  { name: "h********g", tickets: 2, email: "horin1224@gmail.com" },
+];
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const popup = document.getElementById("popup");
+let ticketPool = [];
+let currentWinners = new Set();
+let rotation = 0;
+
+function buildTicketPool() {
+  ticketPool = [];
+  participants.forEach(p => {
+    if (!currentWinners.has(p.name)) {
+      for (let i = 0; i < p.tickets; i++) {
+        ticketPool.push(p.name);
+      }
+    }
+  });
+}
+
+function drawWheel() {
+  ctx.clearRect(0, 0, 500, 500);
+  let total = ticketPool.length;
+  let counts = {};
+  ticketPool.forEach(name => counts[name] = (counts[name] || 0) + 1);
+  let uniqueNames = Object.keys(counts);
+  let startAngle = 0;
+  uniqueNames.forEach((name, i) => {
+    const slice = (counts[name] / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(250, 250);
+    ctx.arc(250, 250, 250, startAngle, startAngle + slice);
+    ctx.fillStyle = `hsl(${i * 25}, 70%, 60%)`;
+    ctx.fill();
+    ctx.save();
+    ctx.translate(250, 250);
+    ctx.rotate(startAngle + slice / 2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#000";
+    ctx.font = "14px sans-serif";
+    ctx.fillText(name, 230, 0);
+    ctx.restore();
+    startAngle += slice;
+  });
+}
+
+function spinOnce(prizeLevel, ulId) {
+  return new Promise(resolve => {
+    buildTicketPool();
+    drawWheel();
+
+    const randIndex = Math.floor(Math.random() * ticketPool.length);
+    const chosenName = ticketPool[randIndex];
+    let total = ticketPool.length;
+    let counts = {};
+    ticketPool.forEach(name => counts[name] = (counts[name] || 0) + 1);
+    let uniqueNames = Object.keys(counts);
+
+    let startAngle = 0;
+    let chosenAngle = 0;
+    for (let name of uniqueNames) {
+      const slice = (counts[name] / total) * 360;
+      if (name === chosenName) {
+        chosenAngle = startAngle + slice / 2;
+        break;
+      }
+      startAngle += slice;
+    }
+
+    const targetAngle = 180;
+    const currentRotation = rotation % 360;
+    const delta = (360 + targetAngle - chosenAngle - currentRotation) % 360;
+    const spinAngle = 360 * 5 + delta;
+    rotation += spinAngle;
+    canvas.style.transform = `rotate(${rotation}deg)`;
+
+    setTimeout(() => {
+      currentWinners.add(chosenName);
+      const ul = document.getElementById(ulId);
+      const li = document.createElement("li");
+      li.textContent = chosenName;
+      ul.appendChild(li);
+
+      popup.textContent = `🎉 ${chosenName}님 당첨!`;
+      popup.style.display = 'block';
+      setTimeout(() => popup.style.display = 'none', 2000);
+
+      const winnerInfo = participants.find(p => p.name === chosenName);
+      if (winnerInfo) {
+        const entry = `${prizeLevel} - ${winnerInfo.name} (${winnerInfo.email})\n`;
+        document.getElementById("adminWinnerLog").textContent += entry;
+      }
+
+      resolve();
+    }, 4500);
+  });
+}
+
+async function startDraw() {
+  currentWinners = new Set();
+  document.getElementById("second").innerHTML = "";
+  document.getElementById("third").innerHTML = "";
+  document.getElementById("adminWinnerLog").textContent = "";
+  rotation = 0;
+
+  buildTicketPool();
+  drawWheel();
+
+  for (let i = 0; i < 10; i++) {
+    await spinOnce("2등", "second");
+  }
+  for (let i = 0; i < 20; i++) {
+    await spinOnce("3등", "third");
+  }
+}
+
+buildTicketPool();
+drawWheel();
+</script>
+</body>
+</html>
