@@ -4,8 +4,11 @@ let timer = null;
 let shuffledList = [];
 
 window.onload = () => {
-  // 기본적으로 병음 표시 체크박스를 체크 상태로 설정
-  document.getElementById("showPinyin").checked = true;
+  // 페이지가 로드된 후, display를 변경
+  const elements = document.querySelectorAll('.your-elements-selector');
+  elements.forEach(element => {
+    element.style.display = 'block';
+  });
 
   // 병음 표시 체크 시 즉시 반영
   document.getElementById("showPinyin").addEventListener("change", () => {
