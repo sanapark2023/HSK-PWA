@@ -1020,8 +1020,8 @@ const quizList = [
     part_of_speech: "명사"
   },
   {
-    word: "得（助动词）",
-    word_traditional: "得（助動詞）",
+    word: "得",
+    word_traditional: "得",
     pinyin: "děi",
     zh: "我得早点儿出门。",
     zh_traditional: "我得早点儿出门。",
