@@ -22,9 +22,9 @@
         <div class="left-card" id="meaning_ko"></div> 
       </div>
       <div class="right-column">
-        <div class="right-card" id="question"></div>
         <div class="right-card" id="sentence"></div>
         <div class="right-card" id="zh_pinyin"></div>
+        <div class="right-card" id="question"></div>
       </div>
     </div>
     <div class="progress-container">
@@ -42,22 +42,42 @@
     </div>
   </div>
   <div class="settings-panel" id="settingsPanel">
+    <!-- 자동 재생 체크박스 -->
     <label><input type="checkbox" id="autoPlay" checked> 자동 재생</label>
-    <label><input type="checkbox" id="hidePinyin"> 병음 숨기기</label>
-    <label>음성: <select id="voiceMode">
-      <option value="zh">중국어만</option>
-      <option value="ko">한글만</option>
-      <option value="both" selected>중국어+한글</option>
-      <option value="none">음성 없음</option>
-    </select></label>
-    <label>한글 반복: <input type="number" id="koRepeat" value="1" min="1" max="5"></label>
-    <label>중국어 반복: <input type="number" id="zhRepeat" value="1" min="1" max="5"></label>
-    <label>문장 순서: <select id="orderMode">
-      <option value="koFirst">한글 먼저</option>
-      <option value="zhFirst">중국어 먼저</option>
-    </select></label>
-    <button onclick="shuffleNow()">🔀 랜덤 재생</button>
+  
+    <!-- 중국어 및 병음 표시 체크박스 -->
+    <label><input type="checkbox" id="chineseCheck" checked>중국어 표시</label>
+    <label><input type="checkbox" id="showPinyin" checked>병음 표시</label>
+  
+    <!-- 한글 뜻 표시 체크박스 -->
+    <label><input type="checkbox" id="meaningCheck" checked>한글(뜻) 표시</label>
+  
+    <!-- 단어 듣기와 관련된 설정 -->
+    <div class="section">
+      <label><input type="checkbox" id="wordCheck" checked>단어 듣기</label>
+      <div class="sub-section">
+        <label><input type="radio" name="wordOrder" id="wordOrderZhFirst" checked> 중국어 단어 먼저</label>
+        <label><input type="radio" name="wordOrder" id="wordOrderKoFirst"> 한국어 단어 뜻 먼저</label>
+      </div>
+      <label>중국어 단어 반복: <input type="number" id="zhwordRepeat" value="1" min="1" max="5"></label>
+      <label>한국어 단어 뜻 반복: <input type="number" id="kowordRepeat" value="1" min="1" max="5"></label>
+    </div>
+  
+    <!-- 예문 듣기와 관련된 설정 -->
+    <div class="section">
+      <label><input type="checkbox" id="sentenceCheck" checked>예문 듣기</label>
+      <div class="sub-section">
+        <label><input type="radio" name="sentenceOrder" id="sentenceOrderZhFirst" checked> 중국어 예문 먼저</label>
+        <label><input type="radio" name="sentenceOrder" id="sentenceOrderKoFirst"> 한국어 예문 뜻 먼저</label>
+      </div>
+      <label>중국어 예문 반복: <input type="number" id="zhRepeat" value="1" min="1" max="5"></label>
+      <label>한국어 예문 뜻 반복: <input type="number" id="koRepeat" value="1" min="1" max="5"></label>
+    </div>
+  
+    <!-- 랜덤 재생 버튼 -->
+    <button onclick="shuffleNow()">🔀 랜덤 섞기</button>
   </div>
+  
   <div class="container">
     <div class="word-list" id="wordList"></div>
   </div>
