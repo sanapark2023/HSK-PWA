@@ -1,0 +1,243 @@
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: linear-gradient(to bottom, #001f3f, #003366);
+  color: #f5f5f5;
+  margin: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+.top-container{
+    width: 100%;
+}
+.container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 18px;
+    box-sizing: border-box;
+}
+h1 {
+  margin: 0;
+  padding: 24px 0 0;
+  width: 100%;
+  font-size: 2rem;
+  color: #00bfff;
+  text-align: center;
+}
+
+.progress-container {
+  width: 100%;
+  max-width: 600px;
+}
+
+.progress-bar {
+  width: 100%;
+  background-color: #ddd;
+  border-radius: 10px;
+  height: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-inner {
+  height: 100%;
+  width: 0;
+  background-color: #00bfff;
+  transition: width 0.3s;
+}
+.quiz-container{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 18px;
+    box-sizing: border-box;
+}
+.quiz-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 700px;
+}
+
+.left-column, .right-column {
+  background: white;
+  color: #003366;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.left-column {
+  text-align: center;
+  font-size: 1.5rem;
+  box-sizing: border-box;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.left-card, .right-card {
+  background: white;
+  color: #003366;
+  font-size: 1.3rem;
+  text-align: center;
+  transition: transform 0.3s ease;
+  box-sizing: border-box;
+}
+
+#word{
+    font-size: 2.4rem;
+    font-weight: 400;
+}
+#meaning_ko{
+    margin-top: 12px;
+}
+#question{
+    margin-bottom: 8px;
+}
+#sentence{
+    font-weight: 500;
+}
+#zh_pinyin{
+    font-size: 1rem;
+    color: #009acd;
+}
+
+.card.visible {
+  transform: scale(1.03);
+}
+
+.controls {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-direction: row;
+  padding: 0px 0 18px;
+}
+
+.controls button {
+  padding: 0.6rem 1.2rem;
+  background-color: #00bfff;
+  color: white;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: none;
+}
+
+.controls button:hover {
+  background-color: #009acd;
+}
+
+.settings-panel {
+  display: none;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  margin: 1rem auto;
+  padding: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  max-width: 700px;
+}
+.word-list {
+  max-height: 200px;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 600px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.word-item {
+  padding: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.word-item:hover {
+  background-color: #00bfff;
+  color: white;
+}
+
+.footer {
+  background: rgba(0, 0, 0, 0.2);
+  color: #ccc;
+  font-size: 0.9rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  bottom: 0;
+  backdrop-filter: blur(4px);
+  padding: 24px;
+  box-sizing: border-box;
+  gap: 8px;
+}
+
+.share-btn {
+  background-color: #00bfff;
+  border: none;
+  padding: 0.5rem 1rem;
+  color: white;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.share-btn:hover {
+  background-color: #009acd;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 600px) {
+  h1 { font-size: 1.6rem; }
+  .quiz-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+  .left-column, .right-column {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .left-card, .right-card {
+    font-size: 1.2rem;
+  }
+  .controls {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .controls button{
+    flex-grow: 1;
+    padding: 4px;
+  }
+
+}
+
+/* 태블릿 모드 */
+@media (max-width: 900px) {
+  h1 { font-size: 1.8rem; }
+  .quiz-layout {
+    grid-template-columns: 1fr 1.5fr;
+  }
+}
