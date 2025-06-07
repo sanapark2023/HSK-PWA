@@ -1,6 +1,7 @@
 let currentIndex = 0;  // 현재 단어 인덱스
 let autoPlayRunning = true; // 자동재생 중인지 상태 관리 (기본값은 true)
 let isPaused = false; // 일시정지 상태
+let hsk_level = 3;
 
 document.addEventListener('DOMContentLoaded', () => {
     // 데이터 세팅 코드
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     index = 0;
     const q = list[index];
 
+    const level = document.getElementById("level");
     const pos = document.getElementById("pos");
     const number = document.getElementById("number");
     const word = document.getElementById("word");
@@ -17,14 +19,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const zh_pinyin = document.getElementById("zh_pinyin");
     const ko = document.getElementById("ko");
 
+    level.innerHTML = `HSK ${hsk_level}급`;
     pos.innerHTML = `${q.part_of_speech}`;
-    number.innerHTML = `${q.no} / 300`;
+    number.innerHTML = `${q.no} / ${quizList.length}`;
     word.innerHTML = `${q.word}`;
     meaning_ko.innerHTML = `${q.meaning_ko}`;
     pinyin.innerHTML = `${q.pinyin}`;
     zh.innerHTML = `${q.zh}`;
     zh_pinyin.innerHTML = `${q.zh_pinyin}`;
     ko.innerHTML = `${q.ko}`;
+
+    const slider = document.getElementById('wordSlider');
+    slider.max = quizList.length;  // quizList 배열 길이에 맞춰 max 값 설정
   }
 
 );
@@ -74,6 +80,7 @@ slider.addEventListener("change", async () => {
 
   // 자동재생 재개
   autoPlayRunning = true;
+  currentIndex++; 
   autoPlay();
 
   // 슬라이더 값도 동기화 (사실 이미 맞춰졌지만 안전하게)
@@ -175,6 +182,9 @@ async function autoPlay() {
     speechSynthesis.cancel();
     await delay(100);
     updateDisplay(currentIndex);
+    slider.value = currentIndex + 1;  // 슬라이더와 현재 인덱스 동기화
+    sliderValue.textContent = currentIndex + 1;
+    updateSliderBackground(slider.value);
     await playWordAudio(quizList[currentIndex]);
     currentIndex++;  // 자동재생 때만 인덱스 증가
   }
@@ -196,10 +206,14 @@ document.addEventListener("keydown", async (event) => {
       speechSynthesis.cancel();    // 음성 중단
       await delay(100);
       currentIndex++;              // 인덱스 이동
+      slider.value = currentIndex + 1;
+      sliderValue.textContent = currentIndex + 1;
+      updateSliderBackground(slider.value);
       await playManualWord(currentIndex);  // 해당 단어 재생
       autoPlayRunning = true;      // 자동재생 재개 허용
       currentIndex++;  // 현재 단어 인덱스 조정
       autoPlay();                  // 자동재생 다시 시작
+      // 슬라이더 값 동기화
     }
   } else if (event.key === "ArrowLeft") {
     if (currentIndex > 0) {
@@ -207,10 +221,16 @@ document.addEventListener("keydown", async (event) => {
       speechSynthesis.cancel();
       await delay(100);
       currentIndex--;
+      slider.value = currentIndex + 1;
+      sliderValue.textContent = currentIndex + 1;
+      updateSliderBackground(slider.value);
       await playManualWord(currentIndex);
       autoPlayRunning = true;
       currentIndex++;  // 현재 단어 인덱스 조정
       autoPlay();
+      // 슬라이더 값 동기화
+      slider.value = currentIndex;
+      sliderValue.textContent = currentIndex;
     }
   }
 });
@@ -240,4 +260,24 @@ document.getElementById("pinyin").addEventListener("click", () => {
     speechSynthesis.resume();
     isPaused = false;
   }
+});
+
+function updateSliderBackground(value) {
+  const slider = document.getElementById('wordSlider');
+  const max = slider.max;
+  const percent = ((value - 1) / (max - 1)) * 100; // 0~100%
+  slider.style.setProperty('--percent', `${percent}%`);
+}
+
+// 슬라이더 값 변경 이벤트
+document.getElementById('wordSlider').addEventListener('input', (e) => {
+  updateSliderBackground(e.target.value);
+  currentIndex = e.target.value - 1;
+  playManualWord(currentIndex);
+});
+
+// 초기값 배경 설정
+window.addEventListener('load', () => {
+  const slider = document.getElementById('wordSlider');
+  updateSliderBackground(slider.value);
 });
