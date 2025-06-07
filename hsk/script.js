@@ -1,7 +1,34 @@
 let currentIndex = 0;  // 현재 단어 인덱스
 let autoPlayRunning = true; // 자동재생 중인지 상태 관리 (기본값은 true)
 let isPaused = false; // 일시정지 상태
-let hsk_level = 3;
+let hsk_level = 1;
+
+const segmentSize = 30; // 한 버튼 당 단어 개수
+const totalWords = quizList.length; // 300개
+const totalSegments = Math.ceil(totalWords / segmentSize);
+
+const segmentationContainer = document.getElementById('words-segmentation');
+
+function createSegmentButtons() {
+  for (let i = 0; i < totalSegments; i++) {
+    const btn = document.createElement('button');
+    const startNum = i * segmentSize + 1;
+    const endNum = Math.min((i + 1) * segmentSize, totalWords);
+    btn.textContent = `${startNum} ~ ${endNum}`;
+    btn.className = 'segment-button';
+    btn.addEventListener('click', () => {
+      currentIndex = i * segmentSize;  // 해당 구간 첫 단어 인덱스
+      autoPlayRunning = false;          // 자동재생 중지
+      speechSynthesis.cancel();         // 음성 중지
+      autoPlayRunning = true;           // 자동재생 재개 허용
+      autoPlay();
+      updateSliderBackground(currentIndex + 1); // 슬라이더 배경 업데이트
+      slider.value = currentIndex + 1;           // 슬라이더 위치 조정
+      sliderValue.textContent = currentIndex + 1;
+    });
+    segmentationContainer.appendChild(btn);
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // 데이터 세팅 코드
@@ -31,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const slider = document.getElementById('wordSlider');
     slider.max = quizList.length;  // quizList 배열 길이에 맞춰 max 값 설정
+
+    createSegmentButtons();
   }
 
 );
@@ -119,21 +148,23 @@ function updateDisplay(index) {
 
   // 핵심 단어를 배열로 분리하여 강조
   let highlightParts = [];
+  const cleanWord = q.word.replace(/\([^)]*\)/g, '').trim();
   // word가 只有…才… 같이 붙어있으면 '只有', '才' 따로 넣기 (… 제외)
-  if (q.word.includes('…')) {
-    highlightParts = q.word.split('…').filter(s => s.trim() !== '');
+  if (cleanWord.includes('…')) {
+    highlightParts = cleanWord.split('…').filter(s => s.trim() !== '');
   } else {
-    highlightParts = [q.word];
+    highlightParts = [cleanWord];
   }
   let highlightPinyinParts = [];
-  if (q.pinyin.includes('…')) {
-    highlightPinyinParts = q.pinyin.split('…').filter(s => s.trim() !== '');
+  const cleanPinyin = q.pinyin.replace(/\([^)]*\)/g, '').trim();
+  if (cleanPinyin.includes('…')) {
+    highlightPinyinParts = cleanPinyin.split('…').filter(s => s.trim() !== '');
   } else {
-    highlightPinyinParts = [q.pinyin];
+    highlightPinyinParts = [cleanPinyin];
   }
 
   document.getElementById("pos").innerHTML = q.part_of_speech;
-  document.getElementById("number").innerHTML = `${q.no} / 300`;
+  document.getElementById("number").innerHTML = `${q.no} / ${quizList.length}`;
   document.getElementById("word").innerHTML = q.word;
   document.getElementById("meaning_ko").innerHTML = q.meaning_ko;
   document.getElementById("pinyin").innerHTML = q.pinyin;
