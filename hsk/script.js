@@ -50,7 +50,36 @@ function speak(text, lang) {
   });
 }
 
+const slider = document.getElementById("wordSlider");
+const sliderValue = document.getElementById("sliderValue");
 
+// 슬라이더 값이 변할 때 (드래그 중) 현재 숫자 업데이트
+slider.addEventListener("input", () => {
+  sliderValue.textContent = slider.value;
+});
+
+// 슬라이더 조작 완료 시 해당 단어로 이동 + 자동재생 재시작
+slider.addEventListener("change", async () => {
+  const val = parseInt(slider.value, 10);
+  currentIndex = val - 1;  // 1-based -> 0-based 인덱스 변환
+
+  // 자동재생 중단 후
+  autoPlayRunning = false;
+  speechSynthesis.cancel();
+  await delay(100);
+
+  // 단어 화면 업데이트 + 음성 재생
+  updateDisplay(currentIndex);
+  await playWordAudio(quizList[currentIndex]);
+
+  // 자동재생 재개
+  autoPlayRunning = true;
+  autoPlay();
+
+  // 슬라이더 값도 동기화 (사실 이미 맞춰졌지만 안전하게)
+  slider.value = val;
+  sliderValue.textContent = val;
+});
 
 // 한 단어 재생 함수: 단어 → 뜻 → 문장 → 문장뜻 순서
 async function playWordAudio(wordObj) {
@@ -64,31 +93,66 @@ async function playWordAudio(wordObj) {
   await delay(1000);
 }
 
+function highlightWordInSentence(words, sentence) {
+  if (!sentence) return sentence;
+  // 여러 단어를 모두 강조하도록 반복 적용
+  let result = sentence;
+  words.forEach(word => {
+    if (!word) return;
+    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapedWord, 'g');
+    result = result.replace(regex, `<span class="highlight">${word}</span>`);
+  });
+  return result;
+}
 
 function updateDisplay(index) {
   const q = quizList[index];
   if (!q) return;
+
+  // 핵심 단어를 배열로 분리하여 강조
+  let highlightParts = [];
+  // word가 只有…才… 같이 붙어있으면 '只有', '才' 따로 넣기 (… 제외)
+  if (q.word.includes('…')) {
+    highlightParts = q.word.split('…').filter(s => s.trim() !== '');
+  } else {
+    highlightParts = [q.word];
+  }
+  let highlightPinyinParts = [];
+  if (q.pinyin.includes('…')) {
+    highlightPinyinParts = q.pinyin.split('…').filter(s => s.trim() !== '');
+  } else {
+    highlightPinyinParts = [q.pinyin];
+  }
 
   document.getElementById("pos").innerHTML = q.part_of_speech;
   document.getElementById("number").innerHTML = `${q.no} / 300`;
   document.getElementById("word").innerHTML = q.word;
   document.getElementById("meaning_ko").innerHTML = q.meaning_ko;
   document.getElementById("pinyin").innerHTML = q.pinyin;
-  document.getElementById("zh").innerHTML = q.zh;
-  document.getElementById("zh_pinyin").innerHTML = q.zh_pinyin;
+  // 여기서 zh 예문 내 단어 강조
+  const highlightedZh = highlightWordInSentence(highlightParts, q.zh);
+  document.getElementById("zh").innerHTML = highlightedZh;
+  // zh_pinyin 내 pinyin 단어 강조
+  const highlightedZhPinyin = highlightWordInSentence(highlightPinyinParts, q.zh_pinyin);
+  document.getElementById("zh_pinyin").innerHTML = highlightedZhPinyin;
   document.getElementById("ko").innerHTML = q.ko;
 }
 
 function replaceTilde(text) {
   if (!text) return text;
-  return text.replace(/~/g, "뭐뭐");
+  return text.replace(/~/g, "무엇");
 }
-
+function removeParentheses(text) {
+  if (!text) return text;
+  // 정규식으로 괄호 안 내용까지 삭제
+  return text.replace(/\([^)]*\)/g, '').trim();
+}
 // 한 단어 음성 재생 (음성 재생 끝나면 자동 종료)
 async function playWordAudio(wordObj) {
   await speak(wordObj.word, "zh-CN");
   await delay(500);
-  await speak(replaceTilde(wordObj.meaning_ko), "ko-KR");
+  await speak(removeParentheses(replaceTilde(wordObj.meaning_ko)), "ko-KR");
   await delay(500);
   await speak(wordObj.zh, "zh-CN");
   await delay(500);
