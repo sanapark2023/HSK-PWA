@@ -283,14 +283,6 @@ function copyLink() {
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 
-window.addEventListener("beforeinstallprompt", (e) => {
-  // 이벤트 캡처 후 기본 동작 방지
-  e.preventDefault();
-  deferredPrompt = e;
-  // 설치 버튼 보이기
-  installBtn.style.display = "inline-block";
-});
-
 installBtn.addEventListener("click", async () => {
   if (!deferredPrompt) {
     return;
