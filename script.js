@@ -280,6 +280,17 @@ function copyLink() {
     alert("링크가 복사되었습니다!");
   });
 }
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("service-worker.js")
+      .then(() => console.log("Service Worker registered"))
+      .catch((err) =>
+        console.error("Service Worker registration failed:", err)
+      );
+  });
+}
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 
