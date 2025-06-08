@@ -1,45 +1,48 @@
 <!DOCTYPE html>
 <html lang="zh">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HSK 단어와 예문</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
-</head>
-<body>
-  <div class="background">
-    <div class="header">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HSK 단어와 예문</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  </head>
+  <body>
+    <div class="background">
+      <div class="header">
         <div class="header-left">
-            <div class="level-background">
-                <div class="level" id="level"></div>
-            </div>
-            <div class="pos-background">
-                <div class="pos" id="pos"></div>
-            </div>
+          <div class="level-background">
+            <div class="level" id="level"></div>
+          </div>
+          <div class="pos-background">
+            <div class="pos" id="pos"></div>
+          </div>
         </div>
         <div class="number" id="number"></div>
-    </div>
-    <div class="container-word">
+      </div>
+      <div class="container-word">
         <div class="word" id="word"></div>
         <div class="left-part">
-            <div class="meaning_ko" id="meaning_ko"></div>
-            <div class="pinyin" id="pinyin"></div>
+          <div class="meaning_ko" id="meaning_ko"></div>
+          <div class="pinyin" id="pinyin"></div>
         </div>
-    </div>
-    <div class="container-sentence">
+      </div>
+      <div class="container-sentence">
         <div class="zh" id="zh"></div>
         <div class="zh_pinyin" id="zh_pinyin"></div>
         <div class="ko" id="ko"></div>
-    </div>
-    <div id="slider-container">
+      </div>
+      <div id="slider-container">
         <div id="sliderValue">1</div>
-        <input type="range" id="wordSlider" min="1" value="1">
+        <input type="range" id="wordSlider" min="1" value="1" />
+      </div>
+      <div id="words-segmentation"></div>
     </div>
-    <div id="words-segmentation">        
-    </div>
-  </div>
-  <script src="hsk1.js"></script>
-  <script src="script.js"></script>
-</body>
+    <script src="hsk4.js"></script>
+    <script src="script.js"></script>
+  </body>
 </html>
