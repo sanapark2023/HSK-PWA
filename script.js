@@ -5,25 +5,29 @@ let shuffledList = [];
 
 window.onload = () => {
   // 페이지가 로드된 후, display를 변경
-  const elements = document.querySelectorAll('.your-elements-selector');
-  elements.forEach(element => {
-    element.style.display = 'block';
+  const elements = document.querySelectorAll(".your-elements-selector");
+  elements.forEach((element) => {
+    element.style.display = "block";
   });
 
   // 병음 표시 체크 시 즉시 반영
   document.getElementById("showPinyin").addEventListener("change", () => {
     const pinyinEl = document.getElementById("pinyin");
-    const zhPinyinEl = document.getElementById("zh_pinyin");  // zh_pinyin 엘리먼트도 추가
+    const zhPinyinEl = document.getElementById("zh_pinyin"); // zh_pinyin 엘리먼트도 추가
     if (pinyinEl && zhPinyinEl) {
       const show = document.getElementById("showPinyin").checked;
       pinyinEl.style.display = show ? "block" : "none";
-      zhPinyinEl.style.display = show ? "block" : "none";  // zh_pinyin도 처리
+      zhPinyinEl.style.display = show ? "block" : "none"; // zh_pinyin도 처리
     }
   });
 
   // 체크박스 상태에 따른 바로 반영
-  document.getElementById("meaningCheck").addEventListener("change", toggleMeaningVisibility);
-  document.getElementById("chineseCheck").addEventListener("change", toggleChineseVisibility);
+  document
+    .getElementById("meaningCheck")
+    .addEventListener("change", toggleMeaningVisibility);
+  document
+    .getElementById("chineseCheck")
+    .addEventListener("change", toggleChineseVisibility);
 
   // 초기 설정 (병음 보이기)
   generateWordList();
@@ -52,7 +56,7 @@ function toggleChineseVisibility() {
 
 function toggleSettings() {
   const panel = document.getElementById("settingsPanel");
-  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+  panel.style.display = panel.style.display === "flex" ? "none" : "flex";
 }
 
 function shuffle(array) {
@@ -78,7 +82,10 @@ function speakMultiple(text, lang, count, callback) {
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = lang;
     utter.rate = 1.0;
-    utter.onend = () => { spoken++; setTimeout(speakOnce, 300); }; 
+    utter.onend = () => {
+      spoken++;
+      setTimeout(speakOnce, 300);
+    };
     speechSynthesis.speak(utter);
   };
   speakOnce();
@@ -122,29 +129,33 @@ function showQuiz() {
       const sentenceCheck = document.getElementById("sentenceCheck").checked;
 
       // 단어 순서와 예문 순서 설정
-      const wordOrder = document.querySelector('input[name="wordOrder"]:checked').id;
-      const sentenceOrder = document.querySelector('input[name="sentenceOrder"]:checked').id;
+      const wordOrder = document.querySelector(
+        'input[name="wordOrder"]:checked'
+      ).id;
+      const sentenceOrder = document.querySelector(
+        'input[name="sentenceOrder"]:checked'
+      ).id;
 
       if (wordCheck) {
         if (wordOrder === "wordOrderZhFirst") {
           // 1. 중국어 단어 먼저 → 한국어 뜻
-          speakMultiple(q.word, 'zh-CN', zhwordRepeat, () => {
-            speakMultiple(q.meaning_ko, 'ko-KR', kowordRepeat, () => {
+          speakMultiple(q.word, "zh-CN", zhwordRepeat, () => {
+            speakMultiple(q.meaning_ko, "ko-KR", kowordRepeat, () => {
               if (sentenceCheck) {
                 // 2. 예문과 뜻 읽기
                 if (sentenceOrder === "sentenceOrderZhFirst") {
                   // 중국어 예문 먼저
                   sentence.classList.add("visible");
-                  speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
+                  speakMultiple(q.zh, "zh-CN", zhRepeat, () => {
                     question.classList.add("visible");
-                    speakMultiple(q.ko, 'ko-KR', koRepeat, afterSpeech);
+                    speakMultiple(q.ko, "ko-KR", koRepeat, afterSpeech);
                   });
                 } else {
                   // 한국어 예문 먼저
                   question.classList.add("visible");
-                  speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
+                  speakMultiple(q.ko, "ko-KR", koRepeat, () => {
                     sentence.classList.add("visible");
-                    speakMultiple(q.zh, 'zh-CN', zhRepeat, afterSpeech);
+                    speakMultiple(q.zh, "zh-CN", zhRepeat, afterSpeech);
                   });
                 }
               } else {
@@ -154,21 +165,21 @@ function showQuiz() {
           });
         } else {
           // 2. 한국어 뜻 먼저 → 중국어 단어
-          speakMultiple(q.meaning_ko, 'ko-KR', kowordRepeat, () => {
-            speakMultiple(q.word, 'zh-CN', zhwordRepeat, () => {
+          speakMultiple(q.meaning_ko, "ko-KR", kowordRepeat, () => {
+            speakMultiple(q.word, "zh-CN", zhwordRepeat, () => {
               if (sentenceCheck) {
                 // 예문과 뜻 읽기
                 if (sentenceOrder === "sentenceOrderZhFirst") {
                   sentence.classList.add("visible");
-                  speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
+                  speakMultiple(q.zh, "zh-CN", zhRepeat, () => {
                     question.classList.add("visible");
-                    speakMultiple(q.ko, 'ko-KR', koRepeat, afterSpeech);
+                    speakMultiple(q.ko, "ko-KR", koRepeat, afterSpeech);
                   });
                 } else {
                   question.classList.add("visible");
-                  speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
+                  speakMultiple(q.ko, "ko-KR", koRepeat, () => {
                     sentence.classList.add("visible");
-                    speakMultiple(q.zh, 'zh-CN', zhRepeat, afterSpeech);
+                    speakMultiple(q.zh, "zh-CN", zhRepeat, afterSpeech);
                   });
                 }
               } else {
@@ -181,15 +192,15 @@ function showQuiz() {
         // 예문만 읽기
         if (sentenceOrder === "sentenceOrderZhFirst") {
           sentence.classList.add("visible");
-          speakMultiple(q.zh, 'zh-CN', zhRepeat, () => {
+          speakMultiple(q.zh, "zh-CN", zhRepeat, () => {
             question.classList.add("visible");
-            speakMultiple(q.ko, 'ko-KR', koRepeat, afterSpeech);
+            speakMultiple(q.ko, "ko-KR", koRepeat, afterSpeech);
           });
         } else {
           question.classList.add("visible");
-          speakMultiple(q.ko, 'ko-KR', koRepeat, () => {
+          speakMultiple(q.ko, "ko-KR", koRepeat, () => {
             sentence.classList.add("visible");
-            speakMultiple(q.zh, 'zh-CN', zhRepeat, afterSpeech);
+            speakMultiple(q.zh, "zh-CN", zhRepeat, afterSpeech);
           });
         }
       } else {
@@ -249,14 +260,17 @@ function updateProgressBar() {
 
 function generateWordList() {
   const container = document.getElementById("wordList");
-  container.innerHTML = '';
+  container.innerHTML = "";
   const list = shuffledList.length ? shuffledList : quizList;
   list.forEach((q, idx) => {
     const div = document.createElement("div");
     div.classList.add("word-item");
     if (idx === index) div.classList.add("current-word-item");
     div.textContent = `${idx + 1}. ${q.word}`;
-    div.onclick = () => { index = idx; showQuiz(); };
+    div.onclick = () => {
+      index = idx;
+      showQuiz();
+    };
     container.appendChild(div);
   });
 }
@@ -266,3 +280,28 @@ function copyLink() {
     alert("링크가 복사되었습니다!");
   });
 }
+let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  // 이벤트 캡처 후 기본 동작 방지
+  e.preventDefault();
+  deferredPrompt = e;
+  // 설치 버튼 보이기
+  installBtn.style.display = "inline-block";
+});
+
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) {
+    return;
+  }
+  deferredPrompt.prompt(); // 설치 팝업 띄우기
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === "accepted") {
+    console.log("사용자가 PWA 설치를 수락했습니다.");
+  } else {
+    console.log("사용자가 PWA 설치를 거부했습니다.");
+  }
+  deferredPrompt = null;
+  installBtn.style.display = "none"; // 버튼 숨기기
+});
